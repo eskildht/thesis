@@ -1,5 +1,6 @@
 #include "node.hpp"
 #include <string>
+#include <iostream>
 
 bool Node::isLeaf()
 {
@@ -21,16 +22,39 @@ InternalNode::InternalNode()
 	leaf = false;
 };
 
+void InternalNode::insert(int key)
+{
+	std::vector<int>::iterator low = std::lower_bound(keys.begin(), keys.end(), key);
+	keys.insert(low, key);
+}
+
+void LeafNode::insert(int key, int value)
+{
+	try
+	{
+		std::vector<int> *values = getValues(key);
+		values->push_back(value);
+	}
+	catch (std::invalid_argument e)
+	{
+		std::vector<int>::iterator low = std::lower_bound(keys.begin(), keys.end(), key);
+		keys.insert(low, key);
+		std::vector<int> *valueVector = new std::vector<int>();
+		valueVector->push_back(value);
+		values.push_back(valueVector);
+	}
+}
+
 Node *InternalNode::split()
 {
 	int length = keys.size();
 	InternalNode *right = new InternalNode();
 
-	right->keys.assign(keys.begin() + length / 2 + 1, keys.end());
-	keys.erase(keys.begin() + length / 2 + 1, keys.end())
+	right->keys.assign(keys.begin() + (length) / 2 + 1, keys.end());
+	keys.erase(keys.begin() + length / 2 + 1, keys.end());
 
-		right->children.assign(keys.begin() + length / 2 + 1, keys.end());
-	children.erase(keys.begin() + length / 2 + 1, keys.end());
+	right->children.assign(children.begin() + length / 2 + 1, children.end());
+	children.erase(children.begin() + length / 2 + 1, children.end());
 
 	return right;
 }
@@ -39,13 +63,12 @@ Node *LeafNode::split()
 {
 	int length = keys.size();
 	LeafNode *right = new LeafNode();
-
 	right->keys.assign(keys.begin() + length / 2 + 1, keys.end());
-	keys.erase(keys.begin() + length / 2 + 1, keys.end())
-		right->values.assign(values.begin() + length / 2 + 1, values.end());
-	keys.erase(values.begin() + length / 2 + 1, values.end())
+	keys.erase(keys.begin() + length / 2 + 1, keys.end());
+	right->values.assign(values.begin() + length / 2 + 1, values.end());
+	keys.erase(keys.begin() + length / 2 + 1, keys.end());
 
-		right->prev = this;
+	right->prev = this;
 	right->next = this->next;
 	this->next = right;
 	(right->next)->prev = right;
@@ -53,18 +76,31 @@ Node *LeafNode::split()
 	return right;
 }
 
-std::vector<Node> &InternalNode::getChildren()
+std::vector<Node *> *InternalNode::getChildren()
 {
 	return &children;
 }
 
-std::vector<int> &LeafNode::getValues(int key)
+std::vector<int> *LeafNode::getValues(int key)
 {
 	std::vector<int>::iterator low = std::lower_bound(keys.begin(), keys.end(), key);
-	if (key == keys[low - keys.begin()])
+	if (low - keys.begin() < keys.size())
 	{
-		return values[low - keys.begin()];
+		if (key == keys[low - keys.begin()])
+		{
+			return values[low - keys.begin()];
+		}
 	}
 	std::string msg = "Key=" + std::to_string(key) + " not found in leaf node";
 	throw std::invalid_argument(msg);
+}
+
+LeafNode *LeafNode::getPrev()
+{
+	return prev;
+}
+
+LeafNode *LeafNode::getNext()
+{
+	return next;
 }
