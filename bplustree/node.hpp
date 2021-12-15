@@ -3,7 +3,8 @@
 class Node {
 	public:
 		bool isLeaf();
-		std::vector<int>& getKeys();
+		std::vector<int>* getKeys();
+		virtual Node* split();
 	protected:
 		bool leaf;
 		std::vector<int> keys;
@@ -11,14 +12,22 @@ class Node {
 
 class InternalNode: Node {
 	public:
-		std::vector<Node>& getChildren();
+		InternalNode();
+		Node* split();
+		std::vector<Node>* getChildren();
 	private:
 		std::vector<Node> children;
 };
 
 class LeafNode: Node {
 	public:
-		std::vector<int>& getValues(int key);
+		LeafNode();
+		Node* split();
+		std::vector<int>* getValues(int key);
+		LeafNode* getPrev();
+		LeafNode* getNext();
 	private:
 		std::vector<std::vector<int>> values;
+		LeafNode* next;
+		LeafNode* prev;
 };
