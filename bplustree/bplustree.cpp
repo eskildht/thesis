@@ -1,12 +1,11 @@
-#include "bplustree.cpp"
+#include "bplustree.hpp"
 
-Bplustree::Bplustree(int order) order(order)
+Bplustree::Bplustree(int order) : order(order)
 {
-    LeafNode node = new LeafNode();
-    root = &node;
+    root = new LeafNode();
 }
 
-Bplustree::getOrder()
+int Bplustree::getOrder()
 {
     return order;
 }
