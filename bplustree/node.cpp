@@ -30,12 +30,12 @@ void InternalNode::insert(int key)
 
 void LeafNode::insert(int key, int value)
 {
-	try
+	std::vector<int> *values = getValues(key);
+	if (values)
 	{
-		std::vector<int> *values = getValues(key);
 		values->push_back(value);
 	}
-	catch (std::invalid_argument e)
+	else
 	{
 		std::vector<int>::iterator low = std::lower_bound(keys.begin(), keys.end(), key);
 		keys.insert(low, key);
@@ -91,8 +91,7 @@ std::vector<int> *LeafNode::getValues(int key)
 			return values[low - keys.begin()];
 		}
 	}
-	std::string msg = "Key=" + std::to_string(key) + " not found in leaf node";
-	throw std::invalid_argument(msg);
+	return nullptr;
 }
 
 LeafNode *LeafNode::getPrev()
