@@ -1,3 +1,4 @@
 .ccls
 .vscode
 output
+*.o
