@@ -39,9 +39,9 @@ void LeafNode::insert(int key, int value)
 	{
 		std::vector<int>::iterator low = std::lower_bound(keys.begin(), keys.end(), key);
 		keys.insert(low, key);
-		std::vector<int> *valueVector = new std::vector<int>();
-		valueVector->push_back(value);
-		values.push_back(valueVector);
+		values = new std::vector<int>();
+		values->push_back(value);
+		this->values.push_back(values);
 	}
 }
 
