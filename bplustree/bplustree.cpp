@@ -50,3 +50,30 @@ void Bplustree::findSearchPath(int key, std::stack<Node *> *path) {
     }
 }
 
+void Bplustree::show() {
+    printTree(root, 0, "");
+}
+
+void Bplustree::printTree(Node *node, int printLevel, std::string prevString) {
+    std::string baseString = prevString;
+    prevString = printNode(root, printLevel, baseString);
+    if (!node->isLeaf()) {
+        InternalNode *internal = static_cast<InternalNode*>(node);
+        for (int i = internal->getChildren()->size(); i >= 0; i--) {
+            printTree((*(internal->getChildren()))[i], i, prevString);
+        }
+    }
+}
+
+std::string Bplustree::printNode(Node *node, int printLevel, std::string prevString) {
+    prevString += "     ";
+    for (int i = 1; i <= printLevel; i++) {
+        prevString += "|  ";
+    }
+    std::cout << prevString << " `---.";
+    for (int i = 0; i < node->getKeys()->size(); i++) {
+        std::cout << (*(node->getKeys()))[i] << ".";
+    }
+    std::cout << std::endl;
+    return prevString;
+}

@@ -1,21 +1,17 @@
-#include <iostream>
-#include "node.hpp"
+#include "bplustree.hpp"
 
 int main()
 {
-    LeafNode ln1;
-    ln1.insert(10, 90);
-    ln1.insert(10, 120);
-    ln1.insert(20, 120);
-
-    for (auto key : *ln1.getKeys())
-    {
-        std::cout << key << "\n";
-        std::cout << "\t";
-        for (auto value : *ln1.getValues(key))
-        {
-            std::cout << value << " ";
-        }
-        std::cout << "\n";
-    }
+    Bplustree tree(4);
+    tree.insert(7, 107);
+    tree.insert(8, 108);
+    tree.insert(9, 109);
+    tree.show();
+    // int keys[8] = {7, 12, 19, 21, 5, 20, 17, 15};
+    // int values[8] = {107, 112, 119, 121, 105, 117, 115};
+    // for (int k : keys) {
+    //     for (int v : values) {
+    //         tree.insert(k, v);
+    //     }
+    // }
 }
