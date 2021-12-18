@@ -68,6 +68,10 @@ void Bplustree::findSearchPath(int key, Node* node, std::stack<Node *> *path) {
 }
 
 void Bplustree::show() {
+    /*
+    Method that prints the current tree.
+    Inspired by: github.com/EmilianoCarrillo/BTree-Pretty-Print
+    */
     printTree(root, 0, "");
 }
 
@@ -87,9 +91,9 @@ std::string Bplustree::printNode(Node *node, int printLevel, std::string prevStr
     for (int i = 1; i <= printLevel; i++) {
         prevString += "|  ";
     }
-    std::cout << prevString << " `---.";
+    std::cout << prevString << " `---|";
     for (int i = 0; i < node->getKeys()->size(); i++) {
-        std::cout << (*(node->getKeys()))[i] << ".";
+        std::cout << (*(node->getKeys()))[i] << "|";
     }
     std::cout << std::endl;
     return prevString;
