@@ -74,10 +74,10 @@ void Bplustree::show() {
 
 void Bplustree::printTree(Node *node, int printLevel, std::string prevString) {
     std::string baseString = prevString;
-    prevString = printNode(root, printLevel, baseString);
+    prevString = printNode(node, printLevel, baseString);
     if (!node->isLeaf()) {
         InternalNode *internal = static_cast<InternalNode*>(node);
-        for (int i = internal->getChildren()->size(); i >= 0; i--) {
+        for (int i = internal->getChildren()->size() - 1; i >= 0; i--) {
             printTree((*(internal->getChildren()))[i], i, prevString);
         }
     }

@@ -2,13 +2,12 @@
 
 int main()
 {
-    Bplustree tree(4);
+    Bplustree tree(3);
     tree.insert(7, 107);
     tree.insert(8, 108);
     tree.insert(9, 109);
-    tree.show();
     tree.insert(11, 111);
-    //tree.show();
+    tree.show();
     // int keys[8] = {7, 12, 19, 21, 5, 20, 17, 15};
     // int values[8] = {107, 112, 119, 121, 105, 117, 115};
     // for (int k : keys) {
