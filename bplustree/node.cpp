@@ -22,10 +22,18 @@ InternalNode::InternalNode()
 	leaf = false;
 };
 
-void InternalNode::insert(int key)
+void InternalNode::insert(int key, Node* right)
 {
 	std::vector<int>::iterator low = std::lower_bound(keys.begin(), keys.end(), key);
 	keys.insert(low, key);
+	low = std::lower_bound(keys.begin(), keys.end(), key);
+	children.insert(children.begin() + (low - keys.begin() + 1), right);
+}
+
+void InternalNode::insert(int key, Node* left, Node* right) {
+	keys.push_back(key);
+	children.push_back(left);
+	children.push_back(right);
 }
 
 void LeafNode::insert(int key, int value)
