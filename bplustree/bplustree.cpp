@@ -17,28 +17,27 @@ void Bplustree::insert(int key, int value) {
     path.pop();
     leaf->insert(key, value);
     if (leaf->getKeys()->size() == order) {
-        Node *right = leaf->split();
-        int keyToParent = (*(right->getKeys()))[0];
+        int *keyToParent = new int;
+        Node *right = leaf->split(keyToParent);
         if (path.empty()) {
             Node *newRoot = new InternalNode();
-            newRoot->insert(keyToParent, leaf, right);
+            newRoot->insert(*keyToParent, leaf, right);
             root = newRoot;
             return;
         }
         Node *internal = path.top();
         path.pop();
-        internal->insert(keyToParent, right);
+        internal->insert(*keyToParent, right);
         while(internal->getKeys()->size() == order) {
-            right = internal->split();
-            keyToParent = (*(right->getKeys()))[0];
+            right = internal->split(keyToParent);
             if (!path.empty()) {
                 internal = path.top();
                 path.pop();
-                internal->insert(keyToParent, right);
+                internal->insert(*keyToParent, right);
             }
             else {
                 Node *newRoot = new InternalNode();
-                newRoot->insert(keyToParent, internal, right);
+                newRoot->insert(*keyToParent, internal, right);
                 root = newRoot;
                 return;
             }

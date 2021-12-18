@@ -5,7 +5,7 @@ class Node
 public:
 	bool isLeaf();
 	std::vector<int> *getKeys();
-	virtual Node *split() = 0;
+	virtual Node *split(int *keyToParent) = 0;
 	virtual void insert(int key, int value) {};
 	virtual void insert(int key, Node* right) {};
 	virtual void insert(int key, Node* left, Node* right) {};
@@ -19,7 +19,7 @@ class InternalNode : public Node
 {
 public:
 	InternalNode();
-	Node *split();
+	Node *split(int *keyToParent);
 	void insert(int key, Node* right);
 	void insert(int key, Node* left, Node* right);
 	std::vector<Node *> *getChildren();
@@ -32,7 +32,7 @@ class LeafNode : public Node
 {
 public:
 	LeafNode();
-	Node *split();
+	Node *split(int *keyToParent);
 	void insert(int key, int value);
 	std::vector<int> *getValues(int key);
 	LeafNode *getPrev();
