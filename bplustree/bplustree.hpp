@@ -15,6 +15,6 @@ private:
     int order;
     Node *root;
     void findSearchPath(int key, Node* node, std::stack<Node *> *path);
-    void printTree(Node *node, int level, std::string prevString);
-    std::string printNode(Node *node, int level, std::string prevString);
+    void printTree(Node *node, int level, std::string prevString, std::vector<int> *parentKeyLengths);
+    std::string printNode(Node *node, int level, std::string prevString, std::vector<int> *parentKeyLengths);
 };
