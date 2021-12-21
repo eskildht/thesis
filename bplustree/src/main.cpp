@@ -15,7 +15,7 @@ void createDeterministicTree(Bplustree *tree) {
 
 void createRandomTree(Bplustree *tree, int nInserts) {
     std::random_device rd;
-    std::mt19937 gen(rd());
+    std::mt19937_64 gen(rd());
     std::uniform_int_distribution<> distr(1, 250);
 
     for(int n=0; n<nInserts; n++) {

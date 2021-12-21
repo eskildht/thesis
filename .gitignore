@@ -1,4 +1,5 @@
 .ccls
+compile_flags.txt
 .vscode
 output
 *.o
