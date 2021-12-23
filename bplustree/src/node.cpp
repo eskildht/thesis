@@ -1,6 +1,4 @@
 #include "node.hpp"
-#include <string>
-#include <iostream>
 
 bool Node::isLeaf()
 {
