@@ -1,7 +1,6 @@
 #include <vector>
 
-class Node
-{
+class Node {
 	public:
 		bool isLeaf();
 		std::vector<int> *getKeys();
@@ -15,8 +14,7 @@ class Node
 		std::vector<int> keys;
 };
 
-class InternalNode : public Node
-{
+class InternalNode : public Node {
 	public:
 		InternalNode();
 		Node *split(int *keyToParent);
@@ -28,8 +26,7 @@ class InternalNode : public Node
 		std::vector<Node *> children;
 };
 
-class LeafNode : public Node
-{
+class LeafNode : public Node {
 	public:
 		LeafNode();
 		Node *split(int *keyToParent);

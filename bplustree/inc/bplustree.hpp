@@ -4,8 +4,7 @@
 
 class Node;
 
-class Bplustree
-{
+class Bplustree {
 	public:
 		Bplustree(int order);
 		int getOrder();
