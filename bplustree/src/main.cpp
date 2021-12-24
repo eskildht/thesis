@@ -12,6 +12,35 @@ void createDeterministicTree(Bplustree *tree) {
     }
 }
 
+void updateTest(Bplustree *tree) {
+	createDeterministicTree(tree);
+	tree->show();
+	int k = 17;
+	std::vector<int> *values = tree->search(k);
+	if (values) {
+		std::cout << "Key=" << k << ": ";
+		for (int val : *values) {
+			std::cout << val << " ";
+		}
+	}
+	else {
+		std::cout << "Key=" << k << ": Not found";
+	}
+	std::cout << std::endl;
+	std::vector<int>* updateValues = new std::vector<int>{1, 2, 3};
+	tree->update(k, updateValues);
+	values = tree->search(k);
+	if (values) {
+		std::cout << "Key=" << k << ": ";
+		for (int val : *values) {
+			std::cout << val << " ";
+		}
+	}
+	else {
+		std::cout << "Key=" << k << ": Not found";
+	}
+}
+
 void createRandomTree(Bplustree *tree, int nInserts, int distLow, int distUpper) {
     std::random_device rd;
     std::mt19937_64 gen(rd());
@@ -24,7 +53,11 @@ void createRandomTree(Bplustree *tree, int nInserts, int distLow, int distUpper)
     }
 }
 
-void searchTest(Bplustree *tree, int nSearches, int distLow, int distUpper) {
+void searchTest(Bplustree *tree, int nSearches) {
+		int distLow = 1;
+		int distUpper = 250;
+    createRandomTree(tree, 250, distLow, distUpper);
+    tree->show();
     std::random_device rd;
     std::mt19937_64 gen(rd());
     std::uniform_int_distribution<> distr(distLow, distUpper);
@@ -47,9 +80,5 @@ void searchTest(Bplustree *tree, int nSearches, int distLow, int distUpper) {
 
 int main() {
     Bplustree tree(4);
-		int distLow = 1;
-		int distUpper = 250;
-    createRandomTree(&tree, 250, distLow, distUpper);
-    tree.show();
-		searchTest(&tree, 15, distLow, distUpper);
+		updateTest(&tree);
 }

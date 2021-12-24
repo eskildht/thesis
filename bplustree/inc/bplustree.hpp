@@ -9,6 +9,7 @@ class Bplustree {
 		Bplustree(int order);
 		int getOrder();
 		void insert(int key, int value);
+		void update(int key, std::vector<int> *values);
 		std::vector<int> *search(int key);
 		void show();
 

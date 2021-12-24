@@ -31,6 +31,7 @@ class LeafNode : public Node {
 		LeafNode();
 		Node *split(int *keyToParent);
 		void insert(int key, int value);
+		void update(int key, std::vector<int> *values);
 		std::vector<int> *getValues(int key);
 		LeafNode *getPrev();
 		LeafNode *getNext();
