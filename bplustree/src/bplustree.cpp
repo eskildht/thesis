@@ -48,7 +48,7 @@ void Bplustree::insert(int key, int value) {
 	}
 }
 
-void Bplustree::update(int key, std::vector<int> *values) {
+void Bplustree::update(int key, const std::vector<int> &values) {
 	std::stack<Node *> path;
 	findSearchPath(key, root, &path);
 	LeafNode *leaf = static_cast<LeafNode *>(path.top());

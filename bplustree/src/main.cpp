@@ -27,7 +27,7 @@ void updateTest(Bplustree *tree) {
 		std::cout << "Key=" << k << ": Not found";
 	}
 	std::cout << std::endl;
-	std::vector<int>* updateValues = new std::vector<int>{1, 2, 3};
+	std::vector<int> updateValues{1, 2, 3};
 	tree->update(k, updateValues);
 	values = tree->search(k);
 	if (values) {
@@ -81,4 +81,27 @@ void searchTest(Bplustree *tree, int nSearches) {
 int main() {
     Bplustree tree(4);
 		updateTest(&tree);
+		std::cout << std::endl;
+		std::vector<int> *values = tree.search(17);
+		if (values) {
+			std::cout << "Key=" << 17 << ": ";
+			for (int val : *values) {
+				std::cout << val << " ";
+			}
+		}
+		else {
+			std::cout << "Key=" << 17 << ": Not found";
+		}
+		std::cout << std::endl;
+		tree.insert(17, 10111);
+		values = tree.search(17);
+		if (values) {
+			std::cout << "Key=" << 17 << ": ";
+			for (int val : *values) {
+				std::cout << val << " ";
+			}
+		}
+		else {
+			std::cout << "Key=" << 17 << ": Not found";
+		}
 }

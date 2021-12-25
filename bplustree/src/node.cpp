@@ -97,11 +97,11 @@ LeafNode *LeafNode::getNext() {
 	return next;
 }
 
-void LeafNode::update(int key, std::vector<int> *values) {
+void LeafNode::update(int key, const std::vector<int> &values) {
 	std::vector<int>::iterator low = std::lower_bound(keys.begin(), keys.end(), key);
 	if (low - keys.begin() < keys.size()) {
 		if (key == keys[low - keys.begin()]) {
-			this->values[low - keys.begin()] = values;
+			this->values[low - keys.begin()] = new std::vector<int>(values);
 		}
 	}
 }
