@@ -29,6 +29,7 @@ class InternalNode : public Node {
 class LeafNode : public Node {
 	public:
 		LeafNode();
+		~LeafNode();
 		Node *split(int *keyToParent);
 		void insert(int key, int value);
 		void update(int key, const std::vector<int> &values);

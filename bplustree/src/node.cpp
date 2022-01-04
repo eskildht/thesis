@@ -105,3 +105,9 @@ void LeafNode::update(int key, const std::vector<int> &values) {
 		}
 	}
 }
+
+LeafNode::~LeafNode() {
+	for (std::vector<int> *value : values) {
+		delete value;
+	}
+}
