@@ -2,6 +2,7 @@
 
 class Node {
 	public:
+		virtual ~Node() {};
 		bool isLeaf();
 		std::vector<int> *getKeys();
 		virtual Node *split(int *keyToParent) = 0;

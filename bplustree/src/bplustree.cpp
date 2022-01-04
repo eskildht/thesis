@@ -120,3 +120,17 @@ std::string Bplustree::printNode(Node *node, int printLevel, std::string prevStr
 	std::cout << std::endl;
 	return prevString;
 }
+
+Bplustree::~Bplustree() {
+	destroy(root);
+}
+
+void Bplustree::destroy(Node *node) {
+	if(!node->isLeaf()) {
+		InternalNode *internal = static_cast<InternalNode *>(node);
+		for (Node *child : *(internal->getChildren())) {
+			destroy(child);
+		}
+	}
+	delete node;
+}
