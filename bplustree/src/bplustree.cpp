@@ -1,5 +1,6 @@
 #include "bplustree.hpp"
-#include "node.hpp"
+#include "internalnode.hpp"
+#include "leafnode.hpp"
 #include <iostream>
 
 Bplustree::Bplustree(int order) : order(order) {
