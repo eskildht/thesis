@@ -1,7 +1,4 @@
-#ifndef NODE_HPP
-#define NODE_HPP
 #include "node.hpp"
-#endif 
 
 class LeafNode : public Node {
 	public:

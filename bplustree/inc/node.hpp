@@ -1,3 +1,6 @@
+#ifndef NODE_HPP
+#define NODE_HPP
+
 #include <vector>
 
 class Node {
@@ -14,3 +17,5 @@ class Node {
 		std::vector<int> keys;
 		bool leaf;
 };
+
+#endif 
