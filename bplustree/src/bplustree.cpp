@@ -14,30 +14,30 @@ int Bplustree::getOrder() {
 void Bplustree::insert(int key, int value) {
 	std::stack<Node *> path;
 	findSearchPath(key, root, &path);
-	Node *leaf = path.top();
+	LeafNode *leaf = static_cast<LeafNode *>(path.top());
 	path.pop();
 	leaf->insert(key, value);
 	if (leaf->getKeys()->size() == order) {
 		int *keyToParent = new int;
 		Node *right = leaf->split(keyToParent);
 		if (path.empty()) {
-			Node *newRoot = new InternalNode();
+			InternalNode *newRoot = new InternalNode();
 			newRoot->insert(*keyToParent, leaf, right);
 			root = newRoot;
 			return;
 		}
-		Node *internal = path.top();
+		InternalNode *internal = static_cast<InternalNode *>(path.top());
 		path.pop();
 		internal->insert(*keyToParent, right);
 		while (internal->getKeys()->size() == order) {
 			right = internal->split(keyToParent);
 			if (!path.empty()) {
-				internal = path.top();
+				internal = static_cast<InternalNode *>(path.top());
 				path.pop();
 				internal->insert(*keyToParent, right);
 			}
 			else {
-				Node *newRoot = new InternalNode();
+				InternalNode *newRoot = new InternalNode();
 				newRoot->insert(*keyToParent, internal, right);
 				root = newRoot;
 				return;
