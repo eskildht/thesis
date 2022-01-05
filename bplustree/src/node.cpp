@@ -1,5 +1,7 @@
 #include "node.hpp"
 
+Node::~Node() {};
+
 std::vector<int> *Node::getKeys() {
 	return &keys;
 }

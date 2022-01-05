@@ -2,7 +2,7 @@
 
 class Node {
 	public:
-		virtual ~Node() {};
+		virtual ~Node() = 0;
 		std::vector<int> *getKeys();
 		virtual void insert(int key, int value) {};
 		virtual void insert(int key, Node* right) {};
