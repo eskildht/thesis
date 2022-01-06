@@ -124,7 +124,21 @@ void scanTest() {
 		}
 		std::cout << "\n";
 	}
-	std::cout << "\n";
+}
+
+void scanFullTest() {
+	std::cout << "---Scan full Test---\n";
+	Bplustree tree(4);
+	createDeterministicTree(&tree);
+	tree.show();
+	std::map<int, std::vector<int>> result = tree.scanFull();
+	for (const auto &[key, values] : result) {
+		std::cout << key << "=";
+		for (const int &value : values) {
+			std::cout << value << ", ";
+		}
+		std::cout << "\n";
+	}
 }
 
 int main() {
@@ -133,5 +147,7 @@ int main() {
 	updateTest();
 	std::cout << std::endl;
 	scanTest();
+	std::cout << std::endl;
+	scanFullTest();
 }
 

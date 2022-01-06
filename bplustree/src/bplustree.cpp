@@ -94,6 +94,25 @@ std::map<int, std::vector<int>> Bplustree::scan(int start, int end) {
 	return result;
 }
 
+std::map<int, std::vector<int>> Bplustree::scanFull() {
+	LeafNode *startLeaf = getLeftLeaf();
+	std::map<int, std::vector<int>> result;
+	LeafNode *leaf = startLeaf->scanFull(result);
+	while (startLeaf != leaf) {
+		leaf = leaf->scanFull(result);
+	}
+	return result;
+}
+
+LeafNode *Bplustree::getLeftLeaf() {
+	Node *node = root;
+	while (!node->isLeaf()) {
+		InternalNode *internal = static_cast<InternalNode *>(node);
+		node = (*(internal->getChildren()))[0];
+	}
+	return static_cast<LeafNode *>(node);
+}
+
 void Bplustree::show() {
 	/*
 	Method that prints the current tree.

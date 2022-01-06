@@ -9,6 +9,7 @@ class LeafNode : public Node {
 		LeafNode *getPrev();
 		std::vector<int> *getValues(int key);
 		LeafNode *scan(int start, int end, LeafNode *startLeaf, std::map<int, std::vector<int>> &result);
+		LeafNode *scanFull(std::map<int, std::vector<int>> &result);
 		void insert(int key, int value);
 		LeafNode *split(int *keyToParent);
 		void update(int key, const std::vector<int> &values);

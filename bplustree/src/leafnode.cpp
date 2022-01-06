@@ -80,6 +80,13 @@ LeafNode *LeafNode::scan(int start, int end, LeafNode *startLeaf, std::map<int, 
 	return next != startLeaf ? next : nullptr;
 }
 
+LeafNode *LeafNode::scanFull(std::map<int, std::vector<int>> &result) {
+	for (std::vector<int>::iterator it = keys.begin(); it != keys.end(); it++) {
+		result[*it] = *values[it - keys.begin()];
+	}
+	return next;
+}
+
 void LeafNode::update(int key, const std::vector<int> &values) {
 	std::vector<int>::iterator low = std::lower_bound(keys.begin(), keys.end(), key);
 	if (low - keys.begin() < keys.size()) {
