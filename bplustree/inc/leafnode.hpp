@@ -8,7 +8,7 @@ class LeafNode : public Node {
 		LeafNode *getPrev();
 		std::vector<int> *getValues(int key);
 		void insert(int key, int value);
-		Node *split(int *keyToParent);
+		LeafNode *split(int *keyToParent);
 		void update(int key, const std::vector<int> &values);
 
 	private:

@@ -42,7 +42,7 @@ void LeafNode::insert(int key, int value) {
 	}
 }
 
-Node *LeafNode::split(int *keyToParent) {
+LeafNode *LeafNode::split(int *keyToParent) {
 	int length = keys.size();
 	LeafNode *right = new LeafNode();
 	*keyToParent = keys[length / 2];

@@ -21,7 +21,7 @@ void InternalNode::insert(int key, Node *left, Node *right) {
 	children.push_back(right);
 }
 
-Node *InternalNode::split(int *keyToParent) {
+InternalNode *InternalNode::split(int *keyToParent) {
 	int length = keys.size();
 	InternalNode *right = new InternalNode();
 	*keyToParent = keys[length / 2];
