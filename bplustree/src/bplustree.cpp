@@ -85,11 +85,11 @@ std::vector<int> *Bplustree::search(int key) {
 std::map<int, std::vector<int>> Bplustree::scan(int start, int end) {
 	std::stack<Node *> path;
 	findSearchPath(start, root, &path);
-	LeafNode *leaf = static_cast<LeafNode *>(path.top());
+	LeafNode *startLeaf = static_cast<LeafNode *>(path.top());
 	std::map<int, std::vector<int>> result;
-	leaf = leaf->scan(start, end, true, result);
+	LeafNode *leaf = startLeaf->scan(start, end, startLeaf, result);
 	while (leaf) {
-		leaf = leaf->scan(start, end, false, result);
+		leaf = leaf->scan(start, end, startLeaf, result);
 	}
 	return result;
 }
