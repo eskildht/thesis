@@ -43,6 +43,7 @@ void Bplustree::insert(int key, int value) {
 				return;
 			}
 		}
+		delete keyToParent;
 	}
 	else {
 		return;
