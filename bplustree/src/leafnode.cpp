@@ -1,5 +1,6 @@
 #include "leafnode.hpp"
 #include <cstddef>
+#include <iostream>
 
 LeafNode::LeafNode() : next(this), prev(this) {
 	leaf = true;
@@ -36,10 +37,11 @@ void LeafNode::insert(int key, int value) {
 	}
 	else {
 		std::vector<int>::iterator low = std::lower_bound(keys.begin(), keys.end(), key);
+		int index = low - keys.begin();
 		keys.insert(low, key);
 		values = new std::vector<int>();
 		values->push_back(value);
-		this->values.push_back(values);
+		this->values.insert(this->values.begin() + index, values);
 	}
 }
 
