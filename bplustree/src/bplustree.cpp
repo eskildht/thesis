@@ -82,6 +82,18 @@ std::vector<int> *Bplustree::search(int key) {
 	return leaf->getValues(key);
 }
 
+std::map<int, std::vector<int>> Bplustree::scan(int start, int end) {
+	std::stack<Node *> path;
+	findSearchPath(start, root, &path);
+	LeafNode *leaf = static_cast<LeafNode *>(path.top());
+	std::map<int, std::vector<int>> result;
+	leaf = leaf->scan(start, end, true, result);
+	while (leaf) {
+		leaf = leaf->scan(start, end, false, result);
+	}
+	return result;
+}
+
 void Bplustree::show() {
 	/*
 	Method that prints the current tree.

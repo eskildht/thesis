@@ -1,6 +1,7 @@
 #include <stack>
 #include <string>
 #include <vector>
+#include <map>
 
 class Node;
 
@@ -12,6 +13,7 @@ class Bplustree {
 		void insert(int key, int value);
 		void update(int key, const std::vector<int> &values);
 		std::vector<int> *search(int key);
+		std::map<int, std::vector<int>> scan(int start, int end);
 		void show();
 
 	private:

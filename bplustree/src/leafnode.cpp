@@ -1,4 +1,5 @@
 #include "leafnode.hpp"
+#include <cstddef>
 
 LeafNode::LeafNode() : next(this), prev(this) {
 	leaf = true;
@@ -58,6 +59,26 @@ LeafNode *LeafNode::split(int *keyToParent) {
 	(right->next)->prev = right;
 
 	return right;
+}
+
+LeafNode *LeafNode::scan(int start, int end, bool startLeaf, std::map<int, std::vector<int>> &result) {
+	int index = 0;
+	if (startLeaf) {
+		std::vector<int>::iterator low = std::lower_bound(keys.begin(), keys.end(), start);
+		index = low - keys.begin();
+	}
+	if (index < keys.size()) {
+		for (int i = index; i < keys.size(); i++) {
+			if (keys[i] <= end) {
+				result[keys[i]] = *values[i];
+			}
+			else {
+				return nullptr;
+			}
+		}
+		return next != this ? next : nullptr;
+	}
+	return nullptr;
 }
 
 void LeafNode::update(int key, const std::vector<int> &values) {
