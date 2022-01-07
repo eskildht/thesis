@@ -13,7 +13,7 @@ class Bplustree {
 		int getOrder();
 		void insert(int key, int value);
 		void update(int key, const std::vector<int> &values);
-		std::vector<int> *search(int key);
+		const std::vector<int> *search(int key);
 		std::map<int, std::vector<int>> scan(int start, int end);
 		std::map<int, std::vector<int>> scanFull();
 		void show();
