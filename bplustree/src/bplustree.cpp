@@ -134,7 +134,7 @@ void Bplustree::remove(InternalNode *parent, Node *node, int &key, Node *oldChil
 		else {
 			nextNode = (*(internal->getChildren()))[low - keys->begin()];
 		}
-		remove(node, nextNode, key, oldChildEntry);
+		remove(internal, nextNode, key, oldChildEntry);
 		if (!oldChildEntry) {
 			return;
 		}
