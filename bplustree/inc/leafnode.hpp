@@ -13,7 +13,7 @@ class LeafNode : public Node {
 		void insert(int key, int value);
 		LeafNode *split(int *keyToParent);
 		void update(int key, const std::vector<int> &values);
-		void remove(int key);
+		void remove(int &key);
 
 	private:
 		LeafNode *next;

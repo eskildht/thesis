@@ -122,7 +122,7 @@ void Bplustree::remove(int key) {
 	remove(nullptr, root, key, nullptr);
 }
 
-void Bplustree::remove(InternalNode *parent, Node *node, int &key, Node *oldChildEntry) {
+void Bplustree::remove(InternalNode *parent, Node *node, int &key, int *oldChildEntry) {
 	if (!node->isLeaf()) {
 		InternalNode *internal = static_cast<InternalNode *>(node);
 		std::vector<int> *keys = internal->getKeys();
@@ -140,26 +140,25 @@ void Bplustree::remove(InternalNode *parent, Node *node, int &key, Node *oldChil
 		}
 		else {
 			internal->remove(oldChildEntry);
-			if (!internal->hasExtraEntries(order)) {
+			if (internal->hasExtraEntries(order)) {
 				oldChildEntry = nullptr;
 				return;
 			}
 			else {
-				auto [sibling, siblingIsOnRHS, splittingKey] = parent->getSibling(internal);
+				auto [sibling, siblingIsOnRHS, splittingKey, splittingKeyIndex] = parent->getSibling(internal);
 				if (sibling->hasExtraEntries(order)) {
 					parent->redistribute(internal, sibling, siblingIsOnRHS);
 					oldChildEntry = nullptr;
 					return;
 				}
 				else {
+					oldChildEntry = splittingKeyIndex;
 					if (siblingIsOnRHS) {
-						oldChildEntry = sibling;
 						internal->insert(splittingKey, (*(sibling->getChildren()))[0]);
 						internal->merge(sibling);
 						return;
 					}
 					else {
-						oldChildEntry = internal;
 						sibling->insert(splittingKey, (*(internal->getChildren()))[0]);
 						sibling->merge(internal);
 						return;
@@ -176,7 +175,7 @@ void Bplustree::remove(InternalNode *parent, Node *node, int &key, Node *oldChil
 			return;
 		}
 		else {
-			auto [sibling, siblingIsOnRHS, splittingKeyIndex] = parent->getSibling(leaf);
+			auto [sibling, siblingIsOnRHS, splittingKey, splittingKeyIndex] = parent->getSibling(leaf);
 			if (sibling->hasExtraEntries(order)) {
 				parent->redistribute(leaf, sibling, siblingIsOnRHS);
 				(*(parent->getKeys()))[splittingKeyIndex] = siblingIsOnRHS ? (*(sibling->getKeys()))[0] : (*(leaf->getKeys()))[0];
@@ -184,13 +183,12 @@ void Bplustree::remove(InternalNode *parent, Node *node, int &key, Node *oldChil
 				return;
 			}
 			else {
+				oldChildEntry = splittingKeyIndex;
 				if (siblingIsOnRHS) {
-					oldChildEntry = sibling;
 					leaf->merge(sibling);
 					return;
 				}
 				else {
-					oldChildEntry = leaf;
 					sibling->merge(leaf);
 					return;
 				}

@@ -24,7 +24,7 @@ class Bplustree {
 		int order;
 		Node *root;
 		void findSearchPath(int key, Node* node, std::stack<Node *> *path);
-		void remove(InternalNode *parent, Node *node, int &key, Node *oldChildEntry);
+		void remove(InternalNode *parent, Node *node, int &key, int *oldChildEntry);
 		LeafNode *getLeftLeaf();
 		void printTree(Node *node, int level, std::string prevString, std::vector<int> *parentKeyLengths);
 		std::string printNode(Node *node, int level, std::string prevString, std::vector<int> *parentKeyLengths);
