@@ -1,6 +1,7 @@
 #include "bplustree.hpp"
 #include "internalnode.hpp"
 #include "leafnode.hpp"
+#include <cmath>
 #include <iostream>
 
 Bplustree::Bplustree(int order) : order(order) {
@@ -111,6 +112,91 @@ LeafNode *Bplustree::getLeftLeaf() {
 		node = (*(internal->getChildren()))[0];
 	}
 	return static_cast<LeafNode *>(node);
+}
+
+void Bplustree::remove(int key) {
+	/*
+	Database Management Systems, 3rd Edition pp. 352-356
+ 	used as guideline.
+	*/
+	remove(nullptr, root, key, nullptr);
+}
+
+void Bplustree::remove(InternalNode *parent, Node *node, int &key, Node *oldChildEntry) {
+	if (!node->isLeaf()) {
+		InternalNode *internal = static_cast<InternalNode *>(node);
+		std::vector<int> *keys = internal->getKeys();
+		std::vector<int>::iterator low = std::lower_bound(keys->begin(), keys->end(), key);
+		Node *nextNode = nullptr;
+		if (key == (*keys)[low - keys->begin()]) {
+			nextNode = (*(internal->getChildren()))[low - keys->begin() + 1];
+		}
+		else {
+			nextNode = (*(internal->getChildren()))[low - keys->begin()];
+		}
+		remove(node, nextNode, key, oldChildEntry);
+		if (!oldChildEntry) {
+			return;
+		}
+		else {
+			internal->remove(oldChildEntry);
+			if (!internal->hasExtraEntries(order)) {
+				oldChildEntry = nullptr;
+				return;
+			}
+			else {
+				auto [sibling, siblingIsOnRHS, splittingKey] = parent->getSibling(internal);
+				if (sibling->hasExtraEntries(order)) {
+					parent->redistribute(internal, sibling, siblingIsOnRHS);
+					oldChildEntry = nullptr;
+					return;
+				}
+				else {
+					if (siblingIsOnRHS) {
+						oldChildEntry = sibling;
+						internal->insert(splittingKey, (*(sibling->getChildren()))[0]);
+						internal->merge(sibling);
+						return;
+					}
+					else {
+						oldChildEntry = internal;
+						sibling->insert(splittingKey, (*(internal->getChildren()))[0]);
+						sibling->merge(internal);
+						return;
+					}
+				}
+			}
+		}
+	}
+	else {
+		LeafNode *leaf = static_cast<LeafNode *>(node);
+		if (leaf->hasExtraEntries(order)) {
+			leaf->remove(key);
+			oldChildEntry = nullptr;
+			return;
+		}
+		else {
+			auto [sibling, siblingIsOnRHS, splittingKeyIndex] = parent->getSibling(leaf);
+			if (sibling->hasExtraEntries(order)) {
+				parent->redistribute(leaf, sibling, siblingIsOnRHS);
+				(*(parent->getKeys()))[splittingKeyIndex] = siblingIsOnRHS ? (*(sibling->getKeys()))[0] : (*(leaf->getKeys()))[0];
+				oldChildEntry = nullptr;
+				return;
+			}
+			else {
+				if (siblingIsOnRHS) {
+					oldChildEntry = sibling;
+					leaf->merge(sibling);
+					return;
+				}
+				else {
+					oldChildEntry = leaf;
+					sibling->merge(leaf);
+					return;
+				}
+			}
+		}
+	}
 }
 
 void Bplustree::show() {

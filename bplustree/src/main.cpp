@@ -3,8 +3,8 @@
 #include <iostream>
 
 void createDeterministicTree(Bplustree *tree) {
-	std::vector<int> keys({7, 12, 19, 21, 5, 20, 17, 15, 91, 21, 111, 142, 7, 16});
-	std::vector<int> values({107, 112, 119, 121, 105, 117, 115, 122, 12311, 12, 12, 192, 23, 182});
+	std::vector<int> keys({55, 45, 40, 35, 30, 25, 20, 15, 5});
+	std::vector<int> values({1, 2, 3, 4, 5, 6, 7, 8, 9});
 	for (int i=0; i < keys.size(); i++) {
 		tree->insert(keys[i], values[i]);
 	}
@@ -28,7 +28,7 @@ void updateTest() {
 	createDeterministicTree(&tree);
 	tree.show();
 	int k = 17;
-	std::vector<int> *values = tree.search(k);
+	const std::vector<int> *values = tree.search(k);
 	if (values) {
 		std::cout << "Key=" << k << ": ";
 		for (int val : *values) {
@@ -66,7 +66,7 @@ void searchTest() {
 	std::uniform_int_distribution<> distr(distLow, distUpper);
 	for(int n=0; n<nSearches; n++) {
 		int k = distr(gen);
-		std::vector<int> *values = tree.search(k);
+		const std::vector<int> *values = tree.search(k);
 		if (values) {
 			std::cout << "Key=" << k << ": ";
 			for (int val : *values) {
@@ -141,13 +141,20 @@ void scanFullTest() {
 	}
 }
 
+void deleteTest() {
+	Bplustree tree(3);
+	createDeterministicTree(&tree);
+	tree.show();
+}
+
 int main() {
-	searchTest();
-	std::cout << std::endl;
-	updateTest();
-	std::cout << std::endl;
-	scanTest();
-	std::cout << std::endl;
-	scanFullTest();
+	//searchTest();
+	//std::cout << std::endl;
+	//updateTest();
+	//std::cout << std::endl;
+	//scanTest();
+	//std::cout << std::endl;
+	//scanFullTest();
+	deleteTest();
 }
 
