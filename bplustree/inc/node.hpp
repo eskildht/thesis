@@ -8,6 +8,7 @@ class Node {
 		virtual ~Node() = 0;
 		std::vector<int> *getKeys();
 		bool isLeaf();
+		bool hasExtraEntries(int &order);
 		virtual Node *split(int *keyToParent) = 0;
 
 	protected:
