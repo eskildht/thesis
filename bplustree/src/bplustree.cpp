@@ -18,37 +18,37 @@ void Bplustree::insert(int key, int value) {
 	LeafNode *leaf = static_cast<LeafNode *>(path.top());
 	path.pop();
 	leaf->insert(key, value);
-if (leaf->getKeys()->size() == order) {
-	int *keyToParent = new int;
-	Node *right = leaf->split(keyToParent);
-	if (path.empty()) {
-		InternalNode *newRoot = new InternalNode();
-		newRoot->insert(*keyToParent, leaf, right);
-		root = newRoot;
-		return;
-	}
-	InternalNode *internal = static_cast<InternalNode *>(path.top());
-	path.pop();
-	internal->insert(*keyToParent, right);
-	while (internal->getKeys()->size() == order) {
-		right = internal->split(keyToParent);
-		if (!path.empty()) {
-			internal = static_cast<InternalNode *>(path.top());
-			path.pop();
-			internal->insert(*keyToParent, right);
-		}
-		else {
+	if (leaf->getKeys()->size() == order) {
+		int *keyToParent = new int;
+		Node *right = leaf->split(keyToParent);
+		if (path.empty()) {
 			InternalNode *newRoot = new InternalNode();
-			newRoot->insert(*keyToParent, internal, right);
+			newRoot->insert(*keyToParent, leaf, right);
 			root = newRoot;
 			return;
 		}
+		InternalNode *internal = static_cast<InternalNode *>(path.top());
+		path.pop();
+		internal->insert(*keyToParent, right);
+		while (internal->getKeys()->size() == order) {
+			right = internal->split(keyToParent);
+			if (!path.empty()) {
+				internal = static_cast<InternalNode *>(path.top());
+				path.pop();
+				internal->insert(*keyToParent, right);
+			}
+			else {
+				InternalNode *newRoot = new InternalNode();
+				newRoot->insert(*keyToParent, internal, right);
+				root = newRoot;
+				return;
+			}
+		}
+		delete keyToParent;
 	}
-	delete keyToParent;
-}
-else {
-	return;
-}
+	else {
+		return;
+	}
 }
 
 void Bplustree::update(int key, const std::vector<int> &values) {
@@ -117,7 +117,7 @@ LeafNode *Bplustree::getLeftLeaf() {
 void Bplustree::remove(int key) {
 	/*
 	Database Management Systems, 3rd Edition pp. 352-356
- 	used as guideline.
+	used as guideline.
 	*/
 	remove(nullptr, root, key, nullptr);
 }
@@ -139,13 +139,13 @@ void Bplustree::remove(InternalNode *parent, Node *node, int &key, int *oldChild
 			return;
 		}
 		else {
-			internal->remove(oldChildEntry);
+			internal->remove(*oldChildEntry);
 			if (internal->hasExtraEntries(order)) {
 				oldChildEntry = nullptr;
 				return;
 			}
 			else {
-				auto [sibling, siblingIsOnRHS, splittingKey, splittingKeyIndex] = parent->getSibling(internal);
+				auto [sibling, siblingIsOnRHS, splittingKey, splittingKeyIndex] = parent->getSibling(internal, order);
 				if (sibling->hasExtraEntries(order)) {
 					parent->redistribute(internal, sibling, siblingIsOnRHS);
 					oldChildEntry = nullptr;
@@ -175,7 +175,7 @@ void Bplustree::remove(InternalNode *parent, Node *node, int &key, int *oldChild
 			return;
 		}
 		else {
-			auto [sibling, siblingIsOnRHS, splittingKey, splittingKeyIndex] = parent->getSibling(leaf);
+			auto [sibling, siblingIsOnRHS, splittingKey, splittingKeyIndex] = parent->getSibling(leaf, order);
 			if (sibling->hasExtraEntries(order)) {
 				parent->redistribute(leaf, sibling, siblingIsOnRHS);
 				(*(parent->getKeys()))[splittingKeyIndex] = siblingIsOnRHS ? (*(sibling->getKeys()))[0] : (*(leaf->getKeys()))[0];
