@@ -146,21 +146,22 @@ void Bplustree::remove(InternalNode *parent, Node *node, int &key, int *oldChild
 			}
 			else {
 				auto [sibling, siblingIsOnRHS, splittingKey, splittingKeyIndex] = parent->getSibling(internal, order);
-				if (sibling->hasExtraEntries(order)) {
-					parent->redistribute(internal, sibling, siblingIsOnRHS);
+				InternalNode *internalSibling = static_cast<InternalNode *>(sibling);
+				if (internalSibling->hasExtraEntries(order)) {
+					parent->redistribute(internal, internalSibling, siblingIsOnRHS);
 					oldChildEntry = nullptr;
 					return;
 				}
 				else {
 					oldChildEntry = splittingKeyIndex;
 					if (siblingIsOnRHS) {
-						internal->insert(splittingKey, (*(sibling->getChildren()))[0]);
-						internal->merge(sibling);
+						internal->insert(splittingKey, (*(internalSibling->getChildren()))[0]);
+						internal->merge(internalSibling);
 						return;
 					}
 					else {
-						sibling->insert(splittingKey, (*(internal->getChildren()))[0]);
-						sibling->merge(internal);
+						internalSibling->insert(splittingKey, (*(internal->getChildren()))[0]);
+						internalSibling->merge(internal);
 						return;
 					}
 				}
@@ -176,20 +177,21 @@ void Bplustree::remove(InternalNode *parent, Node *node, int &key, int *oldChild
 		}
 		else {
 			auto [sibling, siblingIsOnRHS, splittingKey, splittingKeyIndex] = parent->getSibling(leaf, order);
+			LeafNode *leafSibling = static_cast<LeafNode *>(sibling);
 			if (sibling->hasExtraEntries(order)) {
-				parent->redistribute(leaf, sibling, siblingIsOnRHS);
-				(*(parent->getKeys()))[splittingKeyIndex] = siblingIsOnRHS ? (*(sibling->getKeys()))[0] : (*(leaf->getKeys()))[0];
+				parent->redistribute(leaf, leafSibling, siblingIsOnRHS);
+				(*(parent->getKeys()))[splittingKeyIndex] = siblingIsOnRHS ? (*(leafSibling->getKeys()))[0] : (*(leafSibling->getKeys()))[0];
 				oldChildEntry = nullptr;
 				return;
 			}
 			else {
 				oldChildEntry = splittingKeyIndex;
 				if (siblingIsOnRHS) {
-					leaf->merge(sibling);
+					leaf->merge(leafSibling);
 					return;
 				}
 				else {
-					sibling->merge(leaf);
+					leafSibling->merge(leaf);
 					return;
 				}
 			}
