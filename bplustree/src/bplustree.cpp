@@ -148,12 +148,12 @@ void Bplustree::remove(InternalNode *parent, Node *node, int &key, int *oldChild
 				auto [sibling, siblingIsOnRHS, splittingKey, splittingKeyIndex] = parent->getSibling(internal, order);
 				InternalNode *internalSibling = static_cast<InternalNode *>(sibling);
 				if (internalSibling->hasExtraEntries(order)) {
-					parent->redistribute(internal, internalSibling, siblingIsOnRHS);
+					parent->redistribute(internal, internalSibling, siblingIsOnRHS, splittingKey, splittingKeyIndex);
 					oldChildEntry = nullptr;
 					return;
 				}
 				else {
-					oldChildEntry = splittingKeyIndex;
+					oldChildEntry = &splittingKeyIndex;
 					if (siblingIsOnRHS) {
 						internal->insert(splittingKey, (*(internalSibling->getChildren()))[0]);
 						internal->merge(internalSibling);
@@ -179,13 +179,13 @@ void Bplustree::remove(InternalNode *parent, Node *node, int &key, int *oldChild
 			auto [sibling, siblingIsOnRHS, splittingKey, splittingKeyIndex] = parent->getSibling(leaf, order);
 			LeafNode *leafSibling = static_cast<LeafNode *>(sibling);
 			if (sibling->hasExtraEntries(order)) {
-				parent->redistribute(leaf, leafSibling, siblingIsOnRHS);
+				parent->redistribute(leaf, leafSibling);
 				(*(parent->getKeys()))[splittingKeyIndex] = siblingIsOnRHS ? (*(leafSibling->getKeys()))[0] : (*(leafSibling->getKeys()))[0];
 				oldChildEntry = nullptr;
 				return;
 			}
 			else {
-				oldChildEntry = splittingKeyIndex;
+				oldChildEntry = &splittingKeyIndex;
 				if (siblingIsOnRHS) {
 					leaf->merge(leafSibling);
 					return;

@@ -1,4 +1,5 @@
 #include "internalnode.hpp"
+#include <cmath>
 
 InternalNode::InternalNode() {
 	leaf = false;
@@ -78,4 +79,37 @@ std::tuple<Node *, bool, const int &, int> InternalNode::getSibling(Node *node, 
 		}
 	}
 	throw "node not found in children";
+}
+
+void InternalNode::redistribute(InternalNode *node, InternalNode *sibling, bool &siblingIsOnRHS, const int &splittingKey, int &splittingKeyIndex) {
+	/*
+	Redistributes keys and children between two internal nodes that are siblings.
+	Assumes that this internal node is their parent.
+	*/
+	std::vector<int> *nodeKeys = node->getKeys();
+	std::vector<int> *siblingKeys = sibling->getKeys();
+	std::vector<Node *> *nodeChildren = node->getChildren();
+	std::vector<Node *> *siblingChildren = sibling->getChildren();
+	int totKeys = nodeKeys->size() + siblingKeys->size();
+	int nodeNumKeysToReceive = std::floor(totKeys / 2) - nodeKeys->size();
+	// push from right to left through parent
+	if (siblingIsOnRHS) {
+		nodeKeys->insert(nodeKeys->end(), splittingKey);
+		keys[splittingKeyIndex] = (*siblingKeys)[nodeNumKeysToReceive - 1];
+		nodeKeys->insert(nodeKeys->end(), siblingKeys->begin(), siblingKeys->begin() + nodeNumKeysToReceive - 1);
+		siblingKeys->erase(siblingKeys->begin(), siblingKeys->begin() + nodeNumKeysToReceive);
+		nodeChildren->insert(nodeChildren->end(), siblingChildren->begin(), siblingChildren->begin() + nodeNumKeysToReceive);
+		siblingChildren->erase(siblingChildren->begin(), siblingChildren->begin() + nodeNumKeysToReceive);
+	}
+	// push from left to right through parent
+	else {
+		nodeKeys->insert(nodeKeys->begin(), splittingKey);
+		keys[splittingKeyIndex] = (*siblingKeys)[siblingKeys->size() - nodeNumKeysToReceive];
+		nodeKeys->insert(nodeKeys->begin(), siblingKeys->end() - nodeNumKeysToReceive + 1, siblingKeys->end());
+		siblingKeys->erase(siblingKeys->end() - nodeNumKeysToReceive, siblingKeys->end());
+		nodeChildren->insert(nodeChildren->begin(), siblingChildren->end() - nodeNumKeysToReceive, siblingChildren->end());
+		siblingChildren->erase(siblingChildren->end() - nodeNumKeysToReceive, siblingChildren->end());
+	}
+
+
 }
