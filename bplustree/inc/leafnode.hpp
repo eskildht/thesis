@@ -1,3 +1,5 @@
+#ifndef LEAFNODE_HPP
+#define LEAFNODE_HPP
 #include "node.hpp"
 #include <map>
 
@@ -20,3 +22,5 @@ class LeafNode : public Node {
 		LeafNode *prev;
 		std::vector<std::vector<int> *> values;
 };
+
+#endif
