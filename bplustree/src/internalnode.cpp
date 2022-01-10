@@ -1,4 +1,5 @@
 #include "internalnode.hpp"
+#include "leafnode.hpp"
 #include <cmath>
 
 InternalNode::InternalNode() {
@@ -110,6 +111,33 @@ void InternalNode::redistribute(InternalNode *node, InternalNode *sibling, bool 
 		nodeChildren->insert(nodeChildren->begin(), siblingChildren->end() - nodeNumKeysToReceive, siblingChildren->end());
 		siblingChildren->erase(siblingChildren->end() - nodeNumKeysToReceive, siblingChildren->end());
 	}
+}
 
-
+void InternalNode::redistribute(LeafNode *node, LeafNode *sibling, bool &siblingIsOnRHS, const int &splittingKey, int &splittingKeyIndex) {
+	/*
+	Redistributes keys and values between two leaf nodes that are siblings.
+	Assumes that this internal node is their parent.
+	*/
+	std::vector<int> *nodeKeys = node->getKeys();
+	std::vector<int> *siblingKeys = sibling->getKeys();
+	std::vector<std::vector<int> *> *nodeValues = node->getValues();
+	std::vector<std::vector<int> *> *siblingValues = sibling->getValues();
+	int totKeys = nodeKeys->size() + siblingKeys->size();
+	int nodeNumKeysToReceive = std::floor(totKeys / 2) - nodeKeys->size();
+	// push from right to left through parent
+	if (siblingIsOnRHS) {
+		keys[splittingKeyIndex] = (*siblingKeys)[nodeNumKeysToReceive];
+		nodeKeys->insert(nodeKeys->end(), siblingKeys->begin(), siblingKeys->begin() + nodeNumKeysToReceive);
+		siblingKeys->erase(siblingKeys->begin(), siblingKeys->begin() + nodeNumKeysToReceive);
+		nodeValues->insert(nodeValues->end(), siblingValues->begin(), siblingValues->begin() + nodeNumKeysToReceive);
+		siblingValues->erase(siblingValues->begin(), siblingValues->begin() + nodeNumKeysToReceive);
+	}
+	// push from left to right through parent
+	else {
+		keys[splittingKeyIndex] = (*siblingKeys)[siblingKeys->size() - nodeNumKeysToReceive];
+		nodeKeys->insert(nodeKeys->begin(), siblingKeys->end() - nodeNumKeysToReceive, siblingKeys->end());
+		siblingKeys->erase(siblingKeys->end() - nodeNumKeysToReceive, siblingKeys->end());
+		nodeValues->insert(nodeValues->begin(), siblingValues->end() - nodeNumKeysToReceive, siblingValues->end());
+		siblingValues->erase(siblingValues->end() - nodeNumKeysToReceive, siblingValues->end());
+	}
 }

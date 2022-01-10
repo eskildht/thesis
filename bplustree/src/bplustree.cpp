@@ -179,7 +179,7 @@ void Bplustree::remove(InternalNode *parent, Node *node, int &key, int *oldChild
 			auto [sibling, siblingIsOnRHS, splittingKey, splittingKeyIndex] = parent->getSibling(leaf, order);
 			LeafNode *leafSibling = static_cast<LeafNode *>(sibling);
 			if (sibling->hasExtraEntries(order)) {
-				parent->redistribute(leaf, leafSibling);
+				parent->redistribute(leaf, leafSibling, siblingIsOnRHS, splittingKey, splittingKeyIndex);
 				(*(parent->getKeys()))[splittingKeyIndex] = siblingIsOnRHS ? (*(leafSibling->getKeys()))[0] : (*(leafSibling->getKeys()))[0];
 				oldChildEntry = nullptr;
 				return;

@@ -105,3 +105,7 @@ void LeafNode::update(int key, const std::vector<int> &values) {
 		}
 	}
 }
+
+std::vector<std::vector<int> *> *LeafNode::getValues() {
+	return &values;
+}
