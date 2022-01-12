@@ -15,6 +15,7 @@ class LeafNode : public Node {
 		LeafNode *split(int *keyToParent);
 		void update(int key, const std::vector<int> &values);
 		void remove(int &key);
+		void merge(LeafNode *sibling);
 
 	private:
 		LeafNode *next;

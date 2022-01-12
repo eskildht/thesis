@@ -109,3 +109,17 @@ void LeafNode::update(int key, const std::vector<int> &values) {
 std::vector<std::vector<int> *> *LeafNode::getValues() {
 	return &values;
 }
+
+void LeafNode::merge(LeafNode *sibling) {
+	/*
+	Merge all entries of sibling (assumed sibling is on rhs) into
+	this leaf, and then delete the now unneeded sibling. As called
+	in remove of Bplustree clean up of invalid parent entry is dealt
+	with by the respectiv parent when its recursive call returns.
+	*/
+	std::vector<int> *siblingKeys = sibling->getKeys();
+	std::vector<std::vector<int> *> *siblingValues = sibling->getValues();
+	keys.insert(keys.end(), siblingKeys->begin(), siblingKeys->end());
+	values.insert(values.end(), siblingValues->begin(), siblingValues->end());
+	delete sibling;
+}
