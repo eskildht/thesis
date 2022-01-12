@@ -141,3 +141,18 @@ void InternalNode::redistribute(LeafNode *node, LeafNode *sibling, bool &sibling
 		siblingValues->erase(siblingValues->end() - nodeNumKeysToReceive, siblingValues->end());
 	}
 }
+
+void InternalNode::merge(InternalNode *sibling, const int &splittingKey) {
+	/*
+	Merge all entries of sibling (assumed sibling is on rhs) into
+	this internal node, and then delete the now unneeded sibling.
+	As called in remove of Bplustree clean up of invalid parent entry
+	is dealt with by the respectiv parent when its recursive call returns.
+	*/
+	keys.push_back(splittingKey);
+	std::vector<int> *siblingKeys = sibling->getKeys();
+	std::vector<Node *> *siblingChildren = sibling->getChildren();
+	keys.insert(keys.end(), siblingKeys->begin(), siblingKeys->end());
+	children.insert(children.end(), siblingChildren->begin(), siblingChildren->end());
+	delete sibling;
+}

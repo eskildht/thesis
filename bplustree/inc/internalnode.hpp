@@ -14,6 +14,7 @@ class InternalNode : public Node {
 		std::tuple<Node *, bool, const int &, int> getSibling(Node *node, int &order);
 		void redistribute(InternalNode *node, InternalNode *sibling, bool &siblingIsOnRHS, const int &splittingKey, int &splittingKeyIndex);
 		void redistribute(LeafNode *node, LeafNode *sibling, bool &siblingIsOnRHS, const int &splittingKey, int &splittingKeyIndex);
+		void merge(InternalNode *sibling, const int &splittingKey);
 
 	private:
 		std::vector<Node *> children;

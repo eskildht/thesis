@@ -156,12 +156,12 @@ void Bplustree::remove(InternalNode *parent, Node *node, int &key, int *oldChild
 					oldChildEntry = &splittingKeyIndex;
 					if (siblingIsOnRHS) {
 						internal->insert(splittingKey, (*(internalSibling->getChildren()))[0]);
-						internal->merge(internalSibling);
+						internal->merge(internalSibling, splittingKey);
 						return;
 					}
 					else {
 						internalSibling->insert(splittingKey, (*(internal->getChildren()))[0]);
-						internalSibling->merge(internal);
+						internalSibling->merge(internal, splittingKey);
 						return;
 					}
 				}
