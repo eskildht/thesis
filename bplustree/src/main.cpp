@@ -3,8 +3,8 @@
 #include <iostream>
 
 void createDeterministicTree(Bplustree *tree) {
-	std::vector<int> keys({55, 45, 40, 35, 30, 25, 20, 15, 5});
-	std::vector<int> values({1, 2, 3, 4, 5, 6, 7, 8, 9});
+	std::vector<int> keys({2, 3, 5, 7, 14, 16, 19, 20, 22, 24, 27, 29, 33, 34, 38, 39});
+	std::vector<int> values({1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16});
 	for (int i=0; i < keys.size(); i++) {
 		tree->insert(keys[i], values[i]);
 	}
@@ -142,8 +142,15 @@ void scanFullTest() {
 }
 
 void deleteTest() {
-	Bplustree tree(3);
+	std::cout << "---Delete Test---\n";
+	Bplustree tree(5);
 	createDeterministicTree(&tree);
+	tree.show();
+	std::cout << "Test simple delete: Deleting 34\n";
+	tree.remove(34);
+	tree.show();
+	std::cout << "Test leaf redistribute: Deleting 29\n";
+	tree.remove(29);
 	tree.show();
 }
 

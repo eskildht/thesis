@@ -92,7 +92,7 @@ void InternalNode::redistribute(InternalNode *node, InternalNode *sibling, bool 
 	std::vector<Node *> *nodeChildren = node->getChildren();
 	std::vector<Node *> *siblingChildren = sibling->getChildren();
 	int totKeys = nodeKeys->size() + siblingKeys->size();
-	int nodeNumKeysToReceive = std::floor(totKeys / 2) - nodeKeys->size();
+	int nodeNumKeysToReceive = std::floor(static_cast<double>(totKeys) / 2) - nodeKeys->size();
 	// push from right to left through parent
 	if (siblingIsOnRHS) {
 		nodeKeys->insert(nodeKeys->end(), splittingKey);
@@ -123,7 +123,7 @@ void InternalNode::redistribute(LeafNode *node, LeafNode *sibling, bool &sibling
 	std::vector<std::vector<int> *> *nodeValues = node->getValues();
 	std::vector<std::vector<int> *> *siblingValues = sibling->getValues();
 	int totKeys = nodeKeys->size() + siblingKeys->size();
-	int nodeNumKeysToReceive = std::floor(totKeys / 2) - nodeKeys->size();
+	int nodeNumKeysToReceive = std::floor(static_cast<double>(totKeys) / 2) - nodeKeys->size();
 	// push from right to left through parent
 	if (siblingIsOnRHS) {
 		keys[splittingKeyIndex] = (*siblingKeys)[nodeNumKeysToReceive];

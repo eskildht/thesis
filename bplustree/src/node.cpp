@@ -11,6 +11,6 @@ bool Node::isLeaf() {
 	return leaf;
 }
 
-bool Node::hasExtraEntries(int &order) {
-	return keys.size() > std::ceil(order / 2) - 1;
+bool Node::hasExtraEntries(const int &order) {
+	return keys.size() > std::ceil(static_cast<double>(order) / 2) - 1;
 }
