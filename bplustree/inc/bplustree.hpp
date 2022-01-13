@@ -17,14 +17,14 @@ class Bplustree {
 		const std::vector<int> *search(int key);
 		std::map<int, std::vector<int>> scan(int start, int end);
 		std::map<int, std::vector<int>> scanFull();
-		void remove(int key);
+		void remove(const int &key);
 		void show();
 
 	private:
 		int order;
 		Node *root;
 		void findSearchPath(int key, Node* node, std::stack<Node *> *path);
-		void remove(InternalNode *parent, Node *node, int &key, int *oldChildEntry);
+		void remove(InternalNode *parent, Node *node, const int &key, int *&oldChildEntry);
 		LeafNode *getLeftLeaf();
 		void printTree(Node *node, int level, std::string prevString, std::vector<int> *parentKeyLengths);
 		std::string printNode(Node *node, int level, std::string prevString, std::vector<int> *parentKeyLengths);

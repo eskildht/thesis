@@ -28,7 +28,7 @@ std::vector<int> *LeafNode::getValues(int key) {
 	return nullptr;
 }
 
-void LeafNode::remove(int &key) {
+void LeafNode::remove(const int &key) {
 	std::vector<int>::iterator low = std::lower_bound(keys.begin(), keys.end(), key);
 	if (low - keys.begin() < keys.size()) {
 		if (key == keys[low - keys.begin()]) {

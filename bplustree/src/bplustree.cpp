@@ -114,15 +114,16 @@ LeafNode *Bplustree::getLeftLeaf() {
 	return static_cast<LeafNode *>(node);
 }
 
-void Bplustree::remove(int key) {
+void Bplustree::remove(const int &key) {
 	/*
 	Database Management Systems, 3rd Edition pp. 352-356
 	used as guideline.
 	*/
-	remove(nullptr, root, key, nullptr);
+	int *oldChildEntry = nullptr;
+	remove(nullptr, root, key, oldChildEntry);
 }
 
-void Bplustree::remove(InternalNode *parent, Node *node, int &key, int *oldChildEntry) {
+void Bplustree::remove(InternalNode *parent, Node *node, const int &key, int *&oldChildEntry) {
 	if (!node->isLeaf()) {
 		InternalNode *internal = static_cast<InternalNode *>(node);
 		std::vector<int> *keys = internal->getKeys();
@@ -140,8 +141,9 @@ void Bplustree::remove(InternalNode *parent, Node *node, int &key, int *oldChild
 		}
 		else {
 			internal->remove(*oldChildEntry);
+			delete oldChildEntry;
+			oldChildEntry = nullptr;
 			if (internal->hasExtraEntries(order)) {
-				oldChildEntry = nullptr;
 				return;
 			}
 			else {
@@ -149,11 +151,11 @@ void Bplustree::remove(InternalNode *parent, Node *node, int &key, int *oldChild
 				InternalNode *internalSibling = static_cast<InternalNode *>(sibling);
 				if (internalSibling->hasExtraEntries(order)) {
 					parent->redistribute(internal, internalSibling, siblingIsOnRHS, splittingKey, splittingKeyIndex);
-					oldChildEntry = nullptr;
 					return;
 				}
 				else {
-					oldChildEntry = &splittingKeyIndex;
+					oldChildEntry = new int;
+					*oldChildEntry = splittingKeyIndex;
 					if (siblingIsOnRHS) {
 						internal->insert(splittingKey, (*(internalSibling->getChildren()))[0]);
 						internal->merge(internalSibling, splittingKey);
@@ -170,9 +172,9 @@ void Bplustree::remove(InternalNode *parent, Node *node, int &key, int *oldChild
 	}
 	else {
 		LeafNode *leaf = static_cast<LeafNode *>(node);
+		oldChildEntry = nullptr;
 		if (leaf->hasExtraEntries(order)) {
 			leaf->remove(key);
-			oldChildEntry = nullptr;
 			return;
 		}
 		else {
@@ -181,11 +183,11 @@ void Bplustree::remove(InternalNode *parent, Node *node, int &key, int *oldChild
 			LeafNode *leafSibling = static_cast<LeafNode *>(sibling);
 			if (sibling->hasExtraEntries(order)) {
 				parent->redistribute(leaf, leafSibling, siblingIsOnRHS, splittingKey, splittingKeyIndex);
-				oldChildEntry = nullptr;
 				return;
 			}
 			else {
-				oldChildEntry = &splittingKeyIndex;
+				oldChildEntry = new int;
+				*oldChildEntry = splittingKeyIndex;
 				if (siblingIsOnRHS) {
 					leaf->merge(leafSibling);
 					return;

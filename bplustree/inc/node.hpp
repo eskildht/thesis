@@ -9,7 +9,7 @@ class Node {
 		std::vector<int> *getKeys();
 		bool isLeaf();
 		bool hasExtraEntries(const int &order);
-		virtual void remove(int &key) = 0;
+		virtual void remove(const int &key) = 0;
 		virtual Node *split(int *keyToParent) = 0;
 
 	protected:
@@ -17,4 +17,4 @@ class Node {
 		bool leaf;
 };
 
-#endif 
+#endif

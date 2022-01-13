@@ -145,6 +145,7 @@ void deleteTest() {
 	std::cout << "---Delete Test---\n";
 	Bplustree tree(5);
 	createDeterministicTree(&tree);
+	std::cout << "Initial tree\n";
 	tree.show();
 	std::cout << "Test simple delete: Deleting 34\n";
 	tree.remove(34);
@@ -152,6 +153,11 @@ void deleteTest() {
 	std::cout << "Test leaf redistribute: Deleting 29\n";
 	tree.remove(29);
 	tree.show();
+	std::cout << "Test leaf merge: Deleting 24\n";
+	tree.remove(24);
+	tree.show();
+	//tree.show();
+	std::cout << "Finished";
 }
 
 int main() {
