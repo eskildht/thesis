@@ -9,6 +9,7 @@ class Node {
 		std::vector<int> *getKeys();
 		bool isLeaf();
 		bool hasExtraEntries(const int &order);
+		bool hasUnderflow(int order, Node *root);
 		virtual void remove(const int &key) = 0;
 		virtual Node *split(int *keyToParent) = 0;
 

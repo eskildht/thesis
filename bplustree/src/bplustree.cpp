@@ -143,7 +143,7 @@ void Bplustree::remove(InternalNode *parent, Node *node, const int &key, int *&o
 			internal->removeByKeyIndex(*oldChildEntry);
 			delete oldChildEntry;
 			oldChildEntry = nullptr;
-			if (internal->hasExtraEntries(order)) {
+			if (!internal->hasUnderflow(order, root)) {
 				return;
 			}
 			else {

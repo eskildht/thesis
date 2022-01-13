@@ -14,3 +14,7 @@ bool Node::isLeaf() {
 bool Node::hasExtraEntries(const int &order) {
 	return keys.size() > std::ceil(static_cast<double>(order) / 2) - 1;
 }
+
+bool Node::hasUnderflow(int order, Node *root) {
+	return (keys.size() < std::ceil(static_cast<double>(order) / 2) - 1) && !(this == root);
+}
