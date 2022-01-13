@@ -121,6 +121,7 @@ void LeafNode::merge(LeafNode *sibling) {
 	std::vector<std::vector<int> *> *siblingValues = sibling->getValues();
 	keys.insert(keys.end(), siblingKeys->begin(), siblingKeys->end());
 	values.insert(values.end(), siblingValues->begin(), siblingValues->end());
+	siblingValues->clear();
 	this->next = sibling->next;
 	(sibling->next)->prev = this;
 	delete sibling;

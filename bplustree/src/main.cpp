@@ -156,7 +156,6 @@ void deleteTest() {
 	std::cout << "Test leaf merge: Deleting 24\n";
 	tree.remove(24);
 	tree.show();
-	//tree.show();
 	std::cout << "Finished";
 }
 
