@@ -140,7 +140,7 @@ void Bplustree::remove(InternalNode *parent, Node *node, const int &key, int *&o
 			return;
 		}
 		else {
-			internal->remove(*oldChildEntry);
+			internal->removeByKeyIndex(*oldChildEntry);
 			delete oldChildEntry;
 			oldChildEntry = nullptr;
 			if (internal->hasExtraEntries(order)) {

@@ -10,6 +10,7 @@ class InternalNode : public Node {
 		void insert(int key, Node* right);
 		void insert(int key, Node* left, Node* right);
 		void remove(const int &key);
+		void removeByKeyIndex(int keyIndex);
 		InternalNode *split(int *keyToParent);
 		std::tuple<Node *, bool, const int &, int> getSibling(Node *node, int &order);
 		void redistribute(InternalNode *node, InternalNode *sibling, bool &siblingIsOnRHS, const int &splittingKey, int &splittingKeyIndex);
