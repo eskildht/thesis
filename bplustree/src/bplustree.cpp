@@ -181,7 +181,11 @@ void Bplustree::remove(InternalNode *parent, Node *node, const int &key, int *&o
 			return;
 		}
 		else {
-			leaf->remove(key);
+			bool keyWasRemoved = leaf->remove(key);
+			if (!keyWasRemoved) {
+				// key is not present in tree so we can return
+				return;
+			}
 			auto [sibling, siblingIsOnRHS, splittingKey, splittingKeyIndex] = parent->getSibling(leaf, order, root);
 			LeafNode *leafSibling = static_cast<LeafNode *>(sibling);
 			if (sibling->hasExtraEntries(order, root)) {

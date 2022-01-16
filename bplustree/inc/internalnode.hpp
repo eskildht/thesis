@@ -9,7 +9,7 @@ class InternalNode : public Node {
 		std::vector<Node *> *getChildren();
 		void insert(int key, Node* right);
 		void insert(int key, Node* left, Node* right);
-		void remove(const int &key);
+		bool remove(const int &key);
 		void removeByKeyIndex(int keyIndex);
 		InternalNode *split(int *keyToParent);
 		std::tuple<Node *, bool, const int &, int> getSibling(Node *node, int &order, Node *root);

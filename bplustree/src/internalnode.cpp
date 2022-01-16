@@ -37,14 +37,16 @@ InternalNode *InternalNode::split(int *keyToParent) {
 	return right;
 }
 
-void InternalNode::remove(const int &key) {
+bool InternalNode::remove(const int &key) {
 	std::vector<int>::iterator low = std::lower_bound(keys.begin(), keys.end(), key);
 	if (low - keys.begin() < keys.size()) {
 		if (key == keys[low - keys.begin()]) {
 			children.erase(children.begin() + (low + 1 - keys.begin()));
 			keys.erase(low);
+			return true;
 		}
 	}
+	return false;
 }
 
 void InternalNode::removeByKeyIndex(int keyIndex) {

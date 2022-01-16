@@ -10,7 +10,7 @@ class Node {
 		bool isLeaf();
 		bool hasExtraEntries(const int &order, Node *root);
 		bool hasUnderflow(int order, Node *root);
-		virtual void remove(const int &key) = 0;
+		virtual bool remove(const int &key) = 0;
 		virtual Node *split(int *keyToParent) = 0;
 
 	protected:

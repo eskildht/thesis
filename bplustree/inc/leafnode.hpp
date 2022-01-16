@@ -14,7 +14,7 @@ class LeafNode : public Node {
 		void insert(int key, int value);
 		LeafNode *split(int *keyToParent);
 		void update(int key, const std::vector<int> &values);
-		void remove(const int &key);
+		bool remove(const int &key);
 		void merge(LeafNode *sibling);
 
 	private:

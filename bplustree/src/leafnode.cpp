@@ -28,14 +28,16 @@ std::vector<int> *LeafNode::getValues(int key) {
 	return nullptr;
 }
 
-void LeafNode::remove(const int &key) {
+bool LeafNode::remove(const int &key) {
 	std::vector<int>::iterator low = std::lower_bound(keys.begin(), keys.end(), key);
 	if (low - keys.begin() < keys.size()) {
 		if (key == keys[low - keys.begin()]) {
 			values.erase(values.begin() + (low - keys.begin()));
 			keys.erase(low);
+			return true;
 		}
 	}
+	return false;
 }
 
 void LeafNode::insert(int key, int value) {
