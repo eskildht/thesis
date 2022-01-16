@@ -147,9 +147,14 @@ void Bplustree::remove(InternalNode *parent, Node *node, const int &key, int *&o
 				return;
 			}
 			else {
-				auto [sibling, siblingIsOnRHS, splittingKey, splittingKeyIndex] = parent->getSibling(internal, order);
+				if (internal == root) {
+					root = (*(internal->getChildren()))[0];
+					delete internal;
+					return;
+				}
+				auto [sibling, siblingIsOnRHS, splittingKey, splittingKeyIndex] = parent->getSibling(internal, order, root);
 				InternalNode *internalSibling = static_cast<InternalNode *>(sibling);
-				if (internalSibling->hasExtraEntries(order)) {
+				if (internalSibling->hasExtraEntries(order, root)) {
 					parent->redistribute(internal, internalSibling, siblingIsOnRHS, splittingKey, splittingKeyIndex);
 					return;
 				}
@@ -157,12 +162,10 @@ void Bplustree::remove(InternalNode *parent, Node *node, const int &key, int *&o
 					oldChildEntry = new int;
 					*oldChildEntry = splittingKeyIndex;
 					if (siblingIsOnRHS) {
-						internal->insert(splittingKey, (*(internalSibling->getChildren()))[0]);
 						internal->merge(internalSibling, splittingKey);
 						return;
 					}
 					else {
-						internalSibling->insert(splittingKey, (*(internal->getChildren()))[0]);
 						internalSibling->merge(internal, splittingKey);
 						return;
 					}
@@ -173,15 +176,15 @@ void Bplustree::remove(InternalNode *parent, Node *node, const int &key, int *&o
 	else {
 		LeafNode *leaf = static_cast<LeafNode *>(node);
 		oldChildEntry = nullptr;
-		if (leaf->hasExtraEntries(order)) {
+		if (leaf->hasExtraEntries(order, root)) {
 			leaf->remove(key);
 			return;
 		}
 		else {
 			leaf->remove(key);
-			auto [sibling, siblingIsOnRHS, splittingKey, splittingKeyIndex] = parent->getSibling(leaf, order);
+			auto [sibling, siblingIsOnRHS, splittingKey, splittingKeyIndex] = parent->getSibling(leaf, order, root);
 			LeafNode *leafSibling = static_cast<LeafNode *>(sibling);
-			if (sibling->hasExtraEntries(order)) {
+			if (sibling->hasExtraEntries(order, root)) {
 				parent->redistribute(leaf, leafSibling, siblingIsOnRHS, splittingKey, splittingKeyIndex);
 				return;
 			}

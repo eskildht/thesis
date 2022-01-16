@@ -52,7 +52,7 @@ void InternalNode::removeByKeyIndex(int keyIndex) {
 	keys.erase(keys.begin() + keyIndex);
 }
 
-std::tuple<Node *, bool, const int &, int> InternalNode::getSibling(Node *node, int &order) {
+std::tuple<Node *, bool, const int &, int> InternalNode::getSibling(Node *node, int &order, Node *root) {
 	/*
 	Returns a sibling that should be used for redistribution or merge during remove.
 	If possible a sibling that allows for redistribution is returned.
@@ -66,7 +66,7 @@ std::tuple<Node *, bool, const int &, int> InternalNode::getSibling(Node *node, 
 		int index = it - children.begin();
 		if ((index - 1 >= 0) && (index + 1 <= children.size() - 1)) {
 			// right and left sibling exist
-			if (children[index - 1]->hasExtraEntries(order)) {
+			if (children[index - 1]->hasExtraEntries(order, root)) {
 				// redistribution using left is possible
 				return std::make_tuple(children[index - 1], false, keys[index - 1], index - 1);
 			}
