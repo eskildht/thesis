@@ -162,17 +162,29 @@ void deleteTest() {
 	std::cout << "Test internal merge: Deleting 3\n";
 	tree.remove(3);
 	tree.show();
-	std::cout << "Finished";
+	std::cout << "Test delete of non-existing key: Deleting 4000\n";
+	tree.remove(4000);
+	tree.show();
+	std::cout << "Test delete of all keys in tree: Deleting {2, 5, 6, 7, 8, 9, 10, 14, 16, 20, 22, 27, 38, 39}\n";
+	std::vector<int> remainingKeys({2, 5, 6, 7, 8, 9, 10, 14, 16, 20, 22, 27, 38, 39});
+	for (int i = 0; i < remainingKeys.size(); i++) {
+		tree.remove(remainingKeys[i]);
+	}
+	tree.show();
+	std::cout << "Test delete when tree is empty: Deleting 129\n";
+	tree.remove(129);
+	tree.show();
+	std::cout << "---Delete Test Finished---" << std::endl;
 }
 
 int main() {
-	//searchTest();
-	//std::cout << std::endl;
-	//updateTest();
-	//std::cout << std::endl;
-	//scanTest();
-	//std::cout << std::endl;
-	//scanFullTest();
+	searchTest();
+	std::cout << std::endl;
+	updateTest();
+	std::cout << std::endl;
+	scanTest();
+	std::cout << std::endl;
+	scanFullTest();
 	deleteTest();
 }
 
