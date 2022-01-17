@@ -17,10 +17,10 @@ bool Node::hasExtraEntries(const int &order, Node *root) {
 	}
 	else {
 		if (leaf) {
-			return keys.size() > 0;
+			return true;
 		}
 		else {
-			return keys.size() > 2;
+			return keys.size() > 1;
 		}
 	}
 }
@@ -34,7 +34,7 @@ bool Node::hasUnderflow(int order, Node *root) {
 			return false;
 		}
 		else {
-			return keys.size() < 2;
+			return keys.size() < 1;
 		}
 	}
 }
