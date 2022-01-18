@@ -9,24 +9,24 @@ class LeafNode;
 
 class Bplustree {
 	public:
-		Bplustree(int order);
+		Bplustree(const int order);
 		~Bplustree();
 		int getOrder();
-		void insert(int key, int value);
-		void update(int key, const std::vector<int> &values);
-		const std::vector<int> *search(int key);
-		std::map<int, std::vector<int>> scan(int start, int end);
+		void insert(const int key, const int value);
+		void update(const int key, const std::vector<int> &values);
+		const std::vector<int> *search(const int key);
+		std::map<int, std::vector<int>> scan(const int start, const int end);
 		std::map<int, std::vector<int>> scanFull();
-		void remove(const int &key);
+		void remove(const int key);
 		void show();
 
 	private:
 		int order;
 		Node *root;
-		void findSearchPath(int key, Node* node, std::stack<Node *> *path);
-		void remove(InternalNode *parent, Node *node, const int &key, int *&oldChildEntry);
+		void findSearchPath(const int key, Node* node, std::stack<Node *> *path);
+		void remove(InternalNode *parent, Node *node, const int key, int *&oldChildEntry);
 		LeafNode *getLeftLeaf();
-		void printTree(Node *node, int level, std::string prevString, std::vector<int> *parentKeyLengths);
-		std::string printNode(Node *node, int level, std::string prevString, std::vector<int> *parentKeyLengths);
+		void printTree(Node *node, const int level, std::string prevString, const std::vector<int> *parentKeyLengths);
+		std::string printNode(Node *node, const int level, std::string prevString, const std::vector<int> *parentKeyLengths);
 		void destroy(Node *node);
 };

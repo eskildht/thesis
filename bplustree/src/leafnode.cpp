@@ -10,16 +10,16 @@ LeafNode::~LeafNode() {
 	}
 }
 
-LeafNode *LeafNode::getNext() {
+LeafNode *LeafNode::getNext() const {
 	return next;
 }
 
-LeafNode *LeafNode::getPrev() {
+LeafNode *LeafNode::getPrev() const {
 	return prev;
 }
 
-std::vector<int> *LeafNode::getValues(int key) {
-	std::vector<int>::iterator low = std::lower_bound(keys.begin(), keys.end(), key);
+std::vector<int> *LeafNode::getValues(const int key) const {
+	std::vector<int>::const_iterator low = std::lower_bound(keys.begin(), keys.end(), key);
 	if (low - keys.begin() < keys.size()) {
 		if (key == keys[low - keys.begin()]) {
 			return values[low - keys.begin()];
@@ -28,7 +28,7 @@ std::vector<int> *LeafNode::getValues(int key) {
 	return nullptr;
 }
 
-bool LeafNode::remove(const int &key) {
+bool LeafNode::remove(const int key) {
 	std::vector<int>::iterator low = std::lower_bound(keys.begin(), keys.end(), key);
 	if (low - keys.begin() < keys.size()) {
 		if (key == keys[low - keys.begin()]) {
@@ -40,7 +40,7 @@ bool LeafNode::remove(const int &key) {
 	return false;
 }
 
-void LeafNode::insert(int key, int value) {
+void LeafNode::insert(const int key, const int value) {
 	std::vector<int> *values = getValues(key);
 	if (values) {
 		values->push_back(value);
@@ -73,10 +73,10 @@ LeafNode *LeafNode::split(int *keyToParent) {
 	return right;
 }
 
-LeafNode *LeafNode::scan(int start, int end, LeafNode *startLeaf, std::map<int, std::vector<int>> &result) {
+LeafNode *LeafNode::scan(const int start, const int end, const LeafNode *startLeaf, std::map<int, std::vector<int>> &result) const {
 	int index = 0;
 	if (this == startLeaf) {
-		std::vector<int>::iterator low = std::lower_bound(keys.begin(), keys.end(), start);
+		std::vector<int>::const_iterator low = std::lower_bound(keys.begin(), keys.end(), start);
 		index = low - keys.begin();
 	}
 	if (index < keys.size()) {
@@ -92,14 +92,14 @@ LeafNode *LeafNode::scan(int start, int end, LeafNode *startLeaf, std::map<int, 
 	return next != startLeaf ? next : nullptr;
 }
 
-LeafNode *LeafNode::scanFull(std::map<int, std::vector<int>> &result) {
-	for (std::vector<int>::iterator it = keys.begin(); it != keys.end(); it++) {
+LeafNode *LeafNode::scanFull(std::map<int, std::vector<int>> &result) const {
+	for (std::vector<int>::const_iterator it = keys.begin(); it != keys.end(); it++) {
 		result[*it] = *values[it - keys.begin()];
 	}
 	return next;
 }
 
-void LeafNode::update(int key, const std::vector<int> &values) {
+void LeafNode::update(const int key, const std::vector<int> &values) {
 	std::vector<int>::iterator low = std::lower_bound(keys.begin(), keys.end(), key);
 	if (low - keys.begin() < keys.size()) {
 		if (key == keys[low - keys.begin()]) {

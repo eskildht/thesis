@@ -4,7 +4,7 @@
 #include <cmath>
 #include <iostream>
 
-Bplustree::Bplustree(int order) : order(order) {
+Bplustree::Bplustree(const int order) : order(order) {
 	root = new LeafNode();
 }
 
@@ -12,7 +12,7 @@ int Bplustree::getOrder() {
 	return order;
 }
 
-void Bplustree::insert(int key, int value) {
+void Bplustree::insert(const int key, const int value) {
 	std::stack<Node *> path;
 	findSearchPath(key, root, &path);
 	LeafNode *leaf = static_cast<LeafNode *>(path.top());
@@ -51,14 +51,14 @@ void Bplustree::insert(int key, int value) {
 	}
 }
 
-void Bplustree::update(int key, const std::vector<int> &values) {
+void Bplustree::update(const int key, const std::vector<int> &values) {
 	std::stack<Node *> path;
 	findSearchPath(key, root, &path);
 	LeafNode *leaf = static_cast<LeafNode *>(path.top());
 	leaf->update(key, values);
 }
 
-void Bplustree::findSearchPath(int key, Node *node, std::stack<Node *> *path) {
+void Bplustree::findSearchPath(const int key, Node *node, std::stack<Node *> *path) {
 	path->push(node);
 	if (node->isLeaf()) {
 		return;
@@ -76,14 +76,14 @@ void Bplustree::findSearchPath(int key, Node *node, std::stack<Node *> *path) {
 	findSearchPath(key, nextNode, path);
 }
 
-const std::vector<int> *Bplustree::search(int key) {
+const std::vector<int> *Bplustree::search(const int key) {
 	std::stack<Node *> path;
 	findSearchPath(key, root, &path);
 	LeafNode *leaf = static_cast<LeafNode *>(path.top());
 	return leaf->getValues(key);
 }
 
-std::map<int, std::vector<int>> Bplustree::scan(int start, int end) {
+std::map<int, std::vector<int>> Bplustree::scan(const int start, const int end) {
 	std::stack<Node *> path;
 	findSearchPath(start, root, &path);
 	LeafNode *startLeaf = static_cast<LeafNode *>(path.top());
@@ -114,7 +114,7 @@ LeafNode *Bplustree::getLeftLeaf() {
 	return static_cast<LeafNode *>(node);
 }
 
-void Bplustree::remove(const int &key) {
+void Bplustree::remove(const int key) {
 	/*
 	Database Management Systems, 3rd Edition pp. 352-356
 	used as guideline.
@@ -123,7 +123,7 @@ void Bplustree::remove(const int &key) {
 	remove(nullptr, root, key, oldChildEntry);
 }
 
-void Bplustree::remove(InternalNode *parent, Node *node, const int &key, int *&oldChildEntry) {
+void Bplustree::remove(InternalNode *parent, Node *node, const int key, int *&oldChildEntry) {
 	if (!node->isLeaf()) {
 		InternalNode *internal = static_cast<InternalNode *>(node);
 		std::vector<int> *keys = internal->getKeys();
@@ -217,7 +217,7 @@ void Bplustree::show() {
 	printTree(root, 0, "", &parentKeyLengths);
 }
 
-void Bplustree::printTree(Node *node, int printLevel, std::string prevString, std::vector<int> *parentKeyLengths) {
+void Bplustree::printTree(Node *node, const int printLevel, std::string prevString, const std::vector<int> *parentKeyLengths) {
 	std::string baseString = prevString;
 	prevString = printNode(node, printLevel, baseString, parentKeyLengths);
 	if (!node->isLeaf()) {
@@ -232,7 +232,7 @@ void Bplustree::printTree(Node *node, int printLevel, std::string prevString, st
 	}
 }
 
-std::string Bplustree::printNode(Node *node, int printLevel, std::string prevString, std::vector<int> *parentKeyLengths) {
+std::string Bplustree::printNode(Node *node, const int printLevel, std::string prevString, const std::vector<int> *parentKeyLengths) {
 	prevString += parentKeyLengths->empty() ? "" : "     ";
 	for (int i = 1; i <= printLevel; i++) {
 		prevString += "|";

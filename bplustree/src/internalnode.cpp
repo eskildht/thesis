@@ -10,14 +10,14 @@ std::vector<Node *> *InternalNode::getChildren() {
 	return &children;
 };
 
-void InternalNode::insert(int key, Node *right) {
+void InternalNode::insert(const int key, Node *right) {
 	std::vector<int>::iterator low = std::lower_bound(keys.begin(), keys.end(), key);
 	keys.insert(low, key);
 	low = std::lower_bound(keys.begin(), keys.end(), key);
 	children.insert(children.begin() + (low - keys.begin() + 1), right);
 }
 
-void InternalNode::insert(int key, Node *left, Node *right) {
+void InternalNode::insert(const int key, Node *left, Node *right) {
 	keys.push_back(key);
 	children.push_back(left);
 	children.push_back(right);
@@ -37,7 +37,7 @@ InternalNode *InternalNode::split(int *keyToParent) {
 	return right;
 }
 
-bool InternalNode::remove(const int &key) {
+bool InternalNode::remove(const int key) {
 	std::vector<int>::iterator low = std::lower_bound(keys.begin(), keys.end(), key);
 	if (low - keys.begin() < keys.size()) {
 		if (key == keys[low - keys.begin()]) {
@@ -49,19 +49,19 @@ bool InternalNode::remove(const int &key) {
 	return false;
 }
 
-void InternalNode::removeByKeyIndex(int keyIndex) {
+void InternalNode::removeByKeyIndex(const int keyIndex) {
 	children.erase(children.begin() + keyIndex + 1);
 	keys.erase(keys.begin() + keyIndex);
 }
 
-std::tuple<Node *, bool, int, int> InternalNode::getSibling(Node *node, int &order, Node *root) {
+std::tuple<Node *, bool, int, int> InternalNode::getSibling(const Node *node, const int order, const Node *root) const {
 	/*
 	Returns a sibling that should be used for redistribution or merge during remove.
 	If possible a sibling that allows for redistribution is returned.
 
 	:return: sibling, siblingIsOnRHS, splittingKey, splittingKeyIndex
 	*/
-	std::vector<Node *>::iterator it;
+	std::vector<Node *>::const_iterator it;
 	it = std::find(children.begin(), children.end(), node);
 	if (it != children.end()) {
 		// node found in children vector
@@ -89,7 +89,7 @@ std::tuple<Node *, bool, int, int> InternalNode::getSibling(Node *node, int &ord
 	throw "node not found in children";
 }
 
-void InternalNode::redistribute(InternalNode *node, InternalNode *sibling, bool &siblingIsOnRHS, const int &splittingKey, int &splittingKeyIndex) {
+void InternalNode::redistribute(InternalNode *node, InternalNode *sibling, const bool siblingIsOnRHS, const int splittingKey, const int splittingKeyIndex) {
 	/*
 	Redistributes keys and children between two internal nodes that are siblings.
 	Assumes that this internal node is their parent.
@@ -120,7 +120,7 @@ void InternalNode::redistribute(InternalNode *node, InternalNode *sibling, bool 
 	}
 }
 
-void InternalNode::redistribute(LeafNode *node, LeafNode *sibling, bool &siblingIsOnRHS, const int &splittingKey, int &splittingKeyIndex) {
+void InternalNode::redistribute(LeafNode *node, LeafNode *sibling, const bool siblingIsOnRHS, const int splittingKey, const int splittingKeyIndex) {
 	/*
 	Redistributes keys and values between two leaf nodes that are siblings.
 	Assumes that this internal node is their parent.
@@ -149,7 +149,7 @@ void InternalNode::redistribute(LeafNode *node, LeafNode *sibling, bool &sibling
 	}
 }
 
-void InternalNode::merge(InternalNode *sibling, const int &splittingKey) {
+void InternalNode::merge(InternalNode *sibling, const int splittingKey) {
 	/*
 	Merge all entries of sibling (assumed sibling is on rhs) into
 	this internal node, and then delete the now unneeded sibling.

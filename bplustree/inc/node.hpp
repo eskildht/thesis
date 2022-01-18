@@ -7,10 +7,10 @@ class Node {
 	public:
 		virtual ~Node() = 0;
 		std::vector<int> *getKeys();
-		bool isLeaf();
-		bool hasExtraEntries(const int &order, Node *root);
-		bool hasUnderflow(int order, Node *root);
-		virtual bool remove(const int &key) = 0;
+		bool isLeaf() const;
+		bool hasExtraEntries(const int order, const Node *root) const;
+		bool hasUnderflow(const int order, const Node *root) const;
+		virtual bool remove(const int key) = 0;
 		virtual Node *split(int *keyToParent) = 0;
 
 	protected:
