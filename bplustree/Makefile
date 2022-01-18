@@ -1,12 +1,12 @@
 all: optimized debug
 
 optimized: main_optimized.o bplustree_optimized.o internalnode_optimized.o leafnode_optimized.o node_optimized.o 
-	@echo "Optimized build compiled and linked"
 	g++ main_optimized.o internalnode_optimized.o leafnode_optimized.o node_optimized.o bplustree_optimized.o -o optimized -std=c++20
+	@echo "Optimized build compiled and linked"
 
 debug: main_debug.o bplustree_debug.o internalnode_debug.o leafnode_debug.o node_debug.o 
-	@echo "Debug build compiled and linked"
 	g++ main_debug.o internalnode_debug.o leafnode_debug.o node_debug.o bplustree_debug.o -o debug -std=c++20
+	@echo "Debug build compiled and linked"
 
 main_debug.o: src/main.cpp
 	g++ -o main_debug.o -c src/main.cpp -I inc -std=c++20 -g
