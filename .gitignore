@@ -1,7 +1,8 @@
 .ccls
 compile_flags.txt
 .vscode
-output
+debug
+optimized
 *.o
 .DS_Store
 .vimspector.json
