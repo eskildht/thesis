@@ -20,8 +20,6 @@ LeafNode *LeafNode::getPrev() const {
 }
 
 std::vector<int> *LeafNode::getValues(const int key) {
-	std::cout << "Size of keys: " << keys.size() << "\n";
-	std::cout << "Size of values: " << values.size() << "\n";
 	std::vector<int>::iterator low = std::lower_bound(keys.begin(), keys.end(), key);
 	if (low - keys.begin() < keys.size()) {
 		if (key == keys[low - keys.begin()]) {
