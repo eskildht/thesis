@@ -3,10 +3,18 @@
 #include <iostream>
 #include <sstream>
 
-ParallelBplustree::ParallelBplustree(const int order, const int numThreads) : order(order), numThreads(numThreads), threadPool(numThreads) {
-	for (int i = 0; i < numThreads; i++) {
+ParallelBplustree::ParallelBplustree(const int order, const int numThreads, const int numTrees, const bool useBloomFilter) : order(order), numThreads(numThreads), threadPool(numThreads), numTrees(numTrees), useBloomFilter(useBloomFilter) {
+	for (int i = 0; i < numTrees; i++) {
 		trees.push_back(new Bplustree(order));
-		locks.push_back(new std::mutex);
+		treeLocks.push_back(new std::mutex);
+	}
+	if (useBloomFilter) {
+		bloom_parameters parameters;
+		// Maximum false_positive_probability will become 1 in 1000000
+		// for each filter.
+		parameters.projected_element_count = 1000000; 
+		parameters.compute_optimal_parameters();
+		filters.push_back(new bloom_filter(parameters));
 	}
 }
 

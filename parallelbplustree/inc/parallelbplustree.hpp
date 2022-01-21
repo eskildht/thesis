@@ -1,19 +1,22 @@
 #include "bplustree.hpp"
 #include "ctpl_stl.hpp"
-#include <future>
+#include "bloom_filter.hpp"
 #include <vector>
 
 class ParallelBplustree {
 	public:
-		ParallelBplustree(const int order, const int numThreads);
+		ParallelBplustree(const int order, const int numThreads, const int numTrees, const bool useBloomFilter);
 		~ParallelBplustree();
-		std::future<void> insert(const int key, const int value);
+		void insert(const int key, const int value);
 		void show();
 
 	private:
-		int order;
-		int numThreads;
-		std::vector<std::mutex *> locks;
-		ctpl::thread_pool threadPool;
+		const int order;
+		const int numThreads;
+		const int numTrees;
+		const bool useBloomFilter;
 		std::vector<Bplustree *> trees;
+		std::vector<std::mutex *> treeLocks;
+		std::vector<bloom_filter *> filters;
+		ctpl::thread_pool threadPool;
 };
