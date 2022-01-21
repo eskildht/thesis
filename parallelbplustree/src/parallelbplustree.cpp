@@ -1,47 +1,66 @@
 #include "parallelbplustree.hpp"
-#include <future>
-#include <iostream>
-#include <sstream>
 
-ParallelBplustree::ParallelBplustree(const int order, const int numThreads, const int numTrees, const bool useBloomFilter) : order(order), numThreads(numThreads), threadPool(numThreads), numTrees(numTrees), useBloomFilter(useBloomFilter) {
+ParallelBplustree::ParallelBplustree(const int order, const int numThreads, const int numTrees, const bool useBloomFilters) : order(order), numThreads(numThreads), threadPool(numThreads), numTrees(numTrees), useBloomFilters(useBloomFilters) {
 	for (int i = 0; i < numTrees; i++) {
 		trees.push_back(new Bplustree(order));
 		treeLocks.push_back(new std::mutex);
+		treeNumKeys.push_back(0);
 	}
-	if (useBloomFilter) {
+	if (useBloomFilters) {
 		bloom_parameters parameters;
-		// Maximum false_positive_probability will become 1 in 1000000
+		// Maximum false_positive_probability set to 1 in 1000000
 		// for each filter.
-		parameters.projected_element_count = 1000000; 
+		parameters.projected_element_count = 1000000;
+		parameters.false_positive_probability = 0.000001;
 		parameters.compute_optimal_parameters();
-		filters.push_back(new bloom_filter(parameters));
+		for (int i = 0; i < numTrees; i++) {
+			treeFilters.push_back(new bloom_filter(parameters));
+		}
 	}
 }
 
-std::future<void> ParallelBplustree::insert(const int key, const int value) {
-	// Find the correct tree to insert into
-	//t->insert(key, value);
+void ParallelBplustree::threadInsert(int id, const int key, const int value, const int treeIndex) {
+	std::scoped_lock<std::mutex> lock(*treeLocks[treeIndex]);
+	trees[treeIndex]->insert(key, value);
+}
 
-	// Push the insert task into the thread pool using lambda expression
-	std::future<void> fut = threadPool.push([this](int id, const int key, const int value) { 
-		std::stringstream ss;
-		ss << id << " ready to insert key=" << key << " value=" << value << "\n";
-		std::cout << ss.str();
-		this->trees[0]->insert(key, value);
-	}, key, value);
-	return fut;
+void ParallelBplustree::insert(const int key, const int value) {
+	if (useBloomFilters) {
+		for (int i = 0; i < numTrees; i++) {
+			if (treeFilters[i]->contains(key)) {
+				treeNumKeys[i]++;
+				threadPool.push([this](int id, const int key, const int value, const int treeIndex) { this->threadInsert(id, key, value, treeIndex); }, key, value, i);
+				return;
+			}
+		}
+	}
+	// Distribute keys evenly when inserting new keys or when not using
+	// Bloom filters at all. In the latter case there is no guarantee that
+	// all Bplustrees of ParallelBplustree will hold unique keys.
+	std::vector<int>::iterator it = std::min_element(treeNumKeys.begin(), treeNumKeys.end());
+	treeNumKeys[it - treeNumKeys.begin()]++;
+	if (useBloomFilters) {
+		treeFilters[it - treeNumKeys.begin()]->insert(key);
+	}
+	threadPool.push([this](int id, const int key, const int value, const int treeIndex) { this->threadInsert(id, key, value, treeIndex); }, key, value, it - treeNumKeys.begin());
+}
+void ParallelBplustree::waitForWorkToFinish() {
+	threadPool.stop(true);
 }
 
 void ParallelBplustree::show() {
-	for (int i = 0; i < numThreads; i++) {
+	for (int i = 0; i < numTrees; i++) {
 		trees[i]->show();
 	}
 }
 
 ParallelBplustree::~ParallelBplustree() {
-	threadPool.stop(true);
-	for (Bplustree *tree : trees) {
-		delete tree;
+	threadPool.stop();
+	for (int i = 0; i < numTrees; i++) {
+		delete trees[i];
+		delete treeLocks[i];
+		if (useBloomFilters) {
+			delete treeFilters[i];
+		}
 	}
-
 }
