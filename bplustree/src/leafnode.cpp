@@ -1,4 +1,5 @@
 #include "leafnode.hpp"
+#include <iostream>
 
 LeafNode::LeafNode() : next(this), prev(this) {
 	leaf = true;
@@ -18,8 +19,10 @@ LeafNode *LeafNode::getPrev() const {
 	return prev;
 }
 
-std::vector<int> *LeafNode::getValues(const int key) const {
-	std::vector<int>::const_iterator low = std::lower_bound(keys.begin(), keys.end(), key);
+std::vector<int> *LeafNode::getValues(const int key) {
+	std::cout << "Size of keys: " << keys.size() << "\n";
+	std::cout << "Size of values: " << values.size() << "\n";
+	std::vector<int>::iterator low = std::lower_bound(keys.begin(), keys.end(), key);
 	if (low - keys.begin() < keys.size()) {
 		if (key == keys[low - keys.begin()]) {
 			return values[low - keys.begin()];

@@ -1,9 +1,6 @@
-.ccls
 compile_flags.txt
-.vscode
-debug
-optimized
-*.o
-.DS_Store
 .vimspector.json
-*.todo.md
+tasks.todo.md
+.DS_Store
+build/*
+!build/Makefile

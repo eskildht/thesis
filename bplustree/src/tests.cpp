@@ -1,3 +1,8 @@
+/*********************************************************
+* Simple tests used during development of Bplustree.
+* Only tests functionality, not a part of the actual src.
+*********************************************************/
+
 #include "bplustree.hpp"
 #include <random>
 #include <iostream>
@@ -51,6 +56,7 @@ void updateTest() {
 	else {
 		std::cout << "Key=" << k << ": Not found";
 	}
+	std::cout << std::endl;
 }
 
 void searchTest() {
@@ -78,6 +84,7 @@ void searchTest() {
 		}
 		std::cout << std::endl;
 	}
+	std::cout << std::endl;
 }
 
 void scanTest() {
@@ -124,6 +131,7 @@ void scanTest() {
 		}
 		std::cout << "\n";
 	}
+	std::cout << std::endl;
 }
 
 void scanFullTest() {
@@ -179,11 +187,8 @@ void deleteTest() {
 
 int main() {
 	searchTest();
-	std::cout << std::endl;
 	updateTest();
-	std::cout << std::endl;
 	scanTest();
-	std::cout << std::endl;
 	scanFullTest();
 	deleteTest();
 }

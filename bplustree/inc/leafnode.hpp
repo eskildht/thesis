@@ -7,7 +7,7 @@ class LeafNode : public Node {
 		~LeafNode();
 		LeafNode *getNext() const;
 		LeafNode *getPrev() const;
-		std::vector<int> *getValues(const int key) const;
+		std::vector<int> *getValues(const int key); 
 		std::vector<std::vector<int> *> *getValues();
 		LeafNode *scan(const int start, const int end, const LeafNode *startLeaf, std::map<int, std::vector<int>> &result) const;
 		LeafNode *scanFull(std::map<int, std::vector<int>> &result) const;
