@@ -24,13 +24,12 @@ void ParallelBplustree::threadInsert(int id, const int key, const int value, con
 	trees[treeIndex]->insert(key, value);
 }
 
-void ParallelBplustree::insert(const int key, const int value) {
+std::future<void> ParallelBplustree::insert(const int key, const int value) {
 	if (useBloomFilters) {
 		for (int i = 0; i < numTrees; i++) {
 			if (treeFilters[i]->contains(key)) {
 				treeNumKeys[i]++;
-				threadPool.push([this](int id, const int key, const int value, const int treeIndex) { this->threadInsert(id, key, value, treeIndex); }, key, value, i);
-				return;
+				return threadPool.push([this](int id, const int key, const int value, const int treeIndex) { this->threadInsert(id, key, value, treeIndex); }, key, value, i);
 			}
 		}
 	}
@@ -42,7 +41,7 @@ void ParallelBplustree::insert(const int key, const int value) {
 	if (useBloomFilters) {
 		treeFilters[it - treeNumKeys.begin()]->insert(key);
 	}
-	threadPool.push([this](int id, const int key, const int value, const int treeIndex) { this->threadInsert(id, key, value, treeIndex); }, key, value, it - treeNumKeys.begin());
+	return threadPool.push([this](int id, const int key, const int value, const int treeIndex) { this->threadInsert(id, key, value, treeIndex); }, key, value, it - treeNumKeys.begin());
 }
 void ParallelBplustree::waitForWorkToFinish() {
 	threadPool.stop(true);

@@ -6,7 +6,7 @@ class ParallelBplustree {
 	public:
 		ParallelBplustree(const int order, const int numThreads, const int numTrees, const bool useBloomFilters);
 		~ParallelBplustree();
-		void insert(const int key, const int value);
+		std::future<void> insert(const int key, const int value);
 		void show();
 		void waitForWorkToFinish();
 
