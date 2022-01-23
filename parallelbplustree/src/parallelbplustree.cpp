@@ -34,8 +34,10 @@ std::future<void> ParallelBplustree::insert(const int key, const int value) {
 		}
 	}
 	// Distribute keys evenly when inserting new keys or when not using
-	// Bloom filters at all. In the latter case there is no guarantee that
+	// Bloom filters at all. In any case there is no guarantee that
 	// all Bplustrees of ParallelBplustree will hold unique keys.
+	// However, by keeping the false positive probability low
+	// most keys in the first case will only occur in one of the trees.
 	std::vector<int>::iterator it = std::min_element(treeNumKeys.begin(), treeNumKeys.end());
 	treeNumKeys[it - treeNumKeys.begin()]++;
 	if (useBloomFilters) {
