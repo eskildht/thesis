@@ -17,9 +17,51 @@ void printHelpInfo() {
 	std::cout << "--threads  " << "Number of threads to use in the thread pool (default std::thread::hardware_concurrency())\n";
 	std::cout << "--trees    " << "Number of base Bplustrees (default std::thread::hardware_concurrency())\n";
 	std::cout << "--bloom    " << "Enable or disable bloom filter usage (default 1)\n";
-	std::cout << "--test     " << "The test to perform (default \"\"), MUST be passed with one of the following: insert\n";
+	std::cout << "--test     " << "The test to perform (default \"\"), MUST be passed with one of the following: insert, search\n";
 	std::cout << "--op       " << "Number of operations to perform for the test specified (default 10000)\n";
 	std::cout << "--help     " << "Print this help\n";
+}
+
+void searchTest(const int op, ParallelBplustree *tree) {
+	std::cout << "---Search performance test---\n";
+	std::random_device rd;
+	std::mt19937_64 gen(rd());
+	int distLower = 1;
+	int distUpper = 500000;
+	std::uniform_int_distribution<> distr(distLower, distUpper);
+	int numKeyValuePairs = 500000;
+	std::cout << "Building tree with " << numKeyValuePairs << " key/value pairs uniformly drawn from range [" << distLower << ", " << distUpper << "]...\n";
+	std::vector<std::future<void>> buildFutures;
+	std::chrono::steady_clock::time_point t1 = std::chrono::high_resolution_clock::now();
+	for(int i = 0; i < numKeyValuePairs; i++) {
+		int k = distr(gen);
+		int v = distr(gen);
+		buildFutures.push_back(std::move(tree->insert(k, v)));
+	}
+	for(int i = 0; i < numKeyValuePairs; i++) {
+		buildFutures[i].wait();
+	}
+	std::chrono::steady_clock::time_point t2 = std::chrono::high_resolution_clock::now();
+	std::chrono::duration<double, std::milli> ms_double = t2 - t1;
+	std::cout << "Build finished in " << ms_double.count() << " ms\n";
+	std::cout << "Search operations to perform: " << op << "\n";
+	std::cout << "Search keys drawn from same range\n";
+	std::cout << "Searching...\n";
+	std::vector<std::vector<std::future<const std::vector<int> *>>> searchFutures;
+	t1 = std::chrono::high_resolution_clock::now();
+	for (int i = 0; i < op; i++) {
+		int k = distr(gen);
+		searchFutures.push_back(std::move(tree->search(k)));
+	}
+	for (int i = 0; i < op; i++) {
+		for (int j = 0; j < searchFutures[i].size(); j++) {
+			searchFutures[i][j].wait();
+		}
+	}
+	t2 = std::chrono::high_resolution_clock::now();
+	ms_double = t2 - t1;
+	std::cout << ms_double.count() << " ms spent on search operation\n";
+	std::cout << "Performance: " << op / (ms_double.count() / 1000) << " ops\n";
 }
 
 void insertTest(const int op, ParallelBplustree *tree) {
@@ -100,11 +142,14 @@ int main(int argc, char *argv[]) {
 	}
 	ParallelBplustree tree(order, threads, trees, bloom);
 	if (test == "") {
-		std::cout << "Test to run was not specified. Pass --test with one of the following:\ninsert\n";
+		std::cout << "Test to run was not specified. Pass --test with one of the following:\ninsert, search\n";
 		return 0;
 	}
 	printTreeInfo(order, threads, trees, bloom);
 	if (test == "insert") {
 		insertTest(op, &tree);
+	}
+	else if (test == "search") {
+		searchTest(op, &tree);
 	}
 }
