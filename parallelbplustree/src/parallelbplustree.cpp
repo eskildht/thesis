@@ -45,6 +45,11 @@ std::future<void> ParallelBplustree::insert(const int key, const int value) {
 	}
 	return threadPool.push([this](int id, const int key, const int value, const int treeIndex) { this->threadInsert(id, key, value, treeIndex); }, key, value, it - treeNumKeys.begin());
 }
+
+// Waits for the thread pool to finish all remaining tasks before
+// stopping the pool. Since pool is stopped, the ParallelBplustree
+// instance from here on does not complete tasks as defined by
+// methods interacting with the pool.
 void ParallelBplustree::waitForWorkToFinish() {
 	threadPool.stop(true);
 }
