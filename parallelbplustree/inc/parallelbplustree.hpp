@@ -7,6 +7,7 @@ class ParallelBplustree {
 		ParallelBplustree(const int order, const int numThreads, const int numTrees, const bool useBloomFilters);
 		~ParallelBplustree();
 		std::future<void> insert(const int key, const int value);
+		std::vector<std::future<const std::vector<int> *>> search(const int key);
 		void show();
 		void waitForWorkToFinish();
 
@@ -21,4 +22,5 @@ class ParallelBplustree {
 		std::vector<int> treeNumKeys;
 		ctpl::thread_pool threadPool;
 		void threadInsert(int id, const int key, const int value, const int treeIndex);
+		const std::vector<int> *threadSearch(const int key, const int treeIndex) const;
 };

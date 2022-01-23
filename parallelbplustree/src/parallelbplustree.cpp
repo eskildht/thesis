@@ -46,6 +46,29 @@ std::future<void> ParallelBplustree::insert(const int key, const int value) {
 	return threadPool.push([this](int id, const int key, const int value, const int treeIndex) { this->threadInsert(id, key, value, treeIndex); }, key, value, it - treeNumKeys.begin());
 }
 
+const std::vector<int> *ParallelBplustree::threadSearch(const int key, const int treeIndex) const {
+	return trees[treeIndex]->search(key);
+}
+
+std::vector<std::future<const std::vector<int> *>> ParallelBplustree::search(const int key) {
+	std::vector<std::future<const std::vector<int> *>> result;
+	// Some Bplustrees hopefully won't be searched
+	if (useBloomFilters) {
+		for (int i = 0; i < numTrees; i++) {
+			if (treeFilters[i]->contains(key)) {
+				result.push_back(threadPool.push([this](int id, const int key, const int treeIndex) { return this->threadSearch(key, treeIndex); }, key, i));
+
+			}
+		}
+		return result;
+	}
+	// All Bplustrees must be searched
+	for (int i = 0; i < numTrees; i++) {
+		result.push_back(threadPool.push([this](int id, const int key, const int treeIndex) { return this->threadSearch(key, treeIndex); }, key, i));
+	}
+	return result;
+}
+
 // Waits for the thread pool to finish all remaining tasks before
 // stopping the pool. Since pool is stopped, the ParallelBplustree
 // instance from here on does not complete tasks as defined by
