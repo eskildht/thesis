@@ -10,6 +10,18 @@ void printTreeInfo(const int order, const int threads, const int trees, const bo
 	std::cout << "bloom: " << bloom << "\n";
 }
 
+void printHelpInfo() {
+	std::cout << "Usage: ./optimized (./debug) [options]\n";
+	std::cout << "Available options:\n";
+	std::cout << "--order    " << "Order of the Bplustrees (default 5)\n";
+	std::cout << "--threads  " << "Number of threads to use in the thread pool (default std::thread::hardware_concurrency())\n";
+	std::cout << "--trees    " << "Number of base Bplustrees (default std::thread::hardware_concurrency())\n";
+	std::cout << "--bloom    " << "Enable or disable bloom filter usage (default 1)\n";
+	std::cout << "--test     " << "The test to perform (default \"\"), MUST be passed with one of the following: insert\n";
+	std::cout << "--op       " << "Number of operations to perform for the test specified (default 10000)\n";
+	std::cout << "--help     " << "Print this help\n";
+}
+
 void insertTest(const int op, ParallelBplustree *tree) {
 	std::cout << "---Insert performance test---\n";
 	std::random_device rd;
@@ -19,13 +31,18 @@ void insertTest(const int op, ParallelBplustree *tree) {
 	std::uniform_int_distribution<> distr(1, 1000000);
 	std::cout << "Insert operations to perform: " << op << "\n";
 	std::cout << "Key/Value pairs uniformly drawn from range [" << distLower << ", " << distUpper << "]\n";
+	std::vector<std::future<void>> futures;
 	std::chrono::steady_clock::time_point t1 = std::chrono::high_resolution_clock::now();
+	// Insert op number of key, value pair
 	for(int i = 0; i < op; i++) {
 		int k = distr(gen);
 		int v = distr(gen);
-		tree->insert(k, v);
+		futures.push_back(std::move(tree->insert(k, v)));
 	}
-	tree->waitForWorkToFinish();
+	// Wait for all insert operations to complete
+	for(int i = 0; i < op; i++) {
+		futures[i].wait();
+	}
 	std::chrono::steady_clock::time_point t2 = std::chrono::high_resolution_clock::now();
 	std::chrono::duration<double, std::milli> ms_double = t2 - t1;
 	std::cout << ms_double.count() << " ms spent on insert operation\n";
@@ -33,16 +50,21 @@ void insertTest(const int op, ParallelBplustree *tree) {
 }
 
 int main(int argc, char *argv[]) {
-	std::vector<std::string> validArgv = {"--order", "--threads", "--trees", "--bloom", "--test", "--op"};
-	// Valif default values for all args except --test
+	std::vector<std::string> validArgv = {"--order", "--threads", "--trees", "--bloom", "--test", "--op", "--help"};
+	// Valid default values for all args except --test
 	int order = 5;
 	int threads = std::thread::hardware_concurrency();
 	int trees = std::thread::hardware_concurrency();
 	bool bloom = true;
 	std::string test = "";
 	int op = 10000;
+	// If no arguments are passed print --help since at least --test is needed
+	if (argc == 1) {
+		printHelpInfo();
+		return 0;
+	}
 	// Parse argv and set arguments
-	for (int i = 1; i < argc - 1; i++) {
+	for (int i = 1; i < argc; i++) {
 		std::vector<std::string>::iterator it = std::find(validArgv.begin(), validArgv.end(), argv[i]);
 		if (it != validArgv.end()) {
 			switch (it - validArgv.begin()) {
@@ -70,16 +92,19 @@ int main(int argc, char *argv[]) {
 				case 5:
 					op = std::stoi(argv[i+1]);
 					break;
+				case 6:
+					printHelpInfo();
+					return 0;
 			}
 		}
 	}
 	ParallelBplustree tree(order, threads, trees, bloom);
-	printTreeInfo(order, threads, trees, bloom);
 	if (test == "") {
 		std::cout << "Test to run was not specified. Pass --test with one of the following:\ninsert\n";
 		return 0;
 	}
-	else if (test == "insert") {
+	printTreeInfo(order, threads, trees, bloom);
+	if (test == "insert") {
 		insertTest(op, &tree);
 	}
 }
