@@ -71,8 +71,8 @@ std::vector<std::future<const std::vector<int> *>> ParallelBplustree::search(con
 
 std::vector<std::future<void>> ParallelBplustree::update(const int key, const std::vector<int> &values) {
 	std::vector<std::future<void>> result;
-	bool keyWasFound = false;
 	if (useBloomFilters) {
+		bool keyWasFound = false;
 		for (int i = 0; i < numTrees; i++) {
 			// Some trees will hopefully not be operated on.
 			// Most likely one tree only if false positive probability is low
