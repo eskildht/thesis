@@ -112,6 +112,22 @@ void ParallelBplustree::threadRemove(const int key, const int treeIndex) {
 	trees[treeIndex]->remove(key);
 }
 
+std::vector<std::future<void>> ParallelBplustree::remove(const int key) {
+	std::vector<std::future<void>> result;
+	if (useBloomFilters) {
+		for (int i = 0; i < numTrees; i++) {
+			if (treeFilters[i]->contains(key)) {
+				result.push_back(threadPool.push([this](int id, const int key, const int treeIndex) { this->threadRemove(key, treeIndex); }, key, i));
+			}
+		}
+		return result;
+	}
+	for (int i = 0; i < numTrees; i++) {
+		result.push_back(threadPool.push([this](int id, const int key, const int treeIndex) { this->threadRemove(key, treeIndex); }, key, i));
+	}
+	return result;
+}
+
 void ParallelBplustree::waitForWorkToFinish() {
 	// Waits for the thread pool to finish all remaining tasks before
 	// stopping the pool. Since pool is stopped, the ParallelBplustree
