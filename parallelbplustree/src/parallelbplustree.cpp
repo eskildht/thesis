@@ -21,6 +21,7 @@ ParallelBplustree::ParallelBplustree(const int order, const int numThreads, cons
 
 void ParallelBplustree::threadInsert(const int key, const int value, const int treeIndex) {
 	std::scoped_lock<std::mutex> lock(*treeLocks[treeIndex]);
+	treeNumKeys[treeIndex]++;
 	trees[treeIndex]->insert(key, value);
 }
 
@@ -28,7 +29,6 @@ std::future<void> ParallelBplustree::insert(const int key, const int value) {
 	if (useBloomFilters) {
 		for (int i = 0; i < numTrees; i++) {
 			if (treeFilters[i]->contains(key)) {
-				treeNumKeys[i]++;
 				return threadPool.push([this](int id, const int key, const int value, const int treeIndex) { this->threadInsert(key, value, treeIndex); }, key, value, i);
 			}
 		}
@@ -39,7 +39,6 @@ std::future<void> ParallelBplustree::insert(const int key, const int value) {
 	// However, by keeping the false positive probability low
 	// most keys in the first case will only occur in one of the trees.
 	std::vector<int>::iterator it = std::min_element(treeNumKeys.begin(), treeNumKeys.end());
-	treeNumKeys[it - treeNumKeys.begin()]++;
 	if (useBloomFilters) {
 		treeFilters[it - treeNumKeys.begin()]->insert(key);
 	}
@@ -103,7 +102,7 @@ std::vector<std::future<void>> ParallelBplustree::update(const int key, const st
 		}
 		return result;
 	}
-	// Remove key from all but one Bplustree, then update or insert 
+	// Remove key from all but one Bplustree, then update or insert
 	// into that one
 	for (int i = 1; i < numTrees; i++) {
 		result.push_back(threadPool.push([this](int id, const int key, const std::vector<int> &values, const int treeIndex) { this->threadRemove(key, values, treeIndex); }, key, values, i));
