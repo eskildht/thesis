@@ -56,6 +56,20 @@ void LeafNode::insert(const int key, const int value) {
 	}
 }
 
+void LeafNode::insert(const int key, const std::vector<int> &values) {
+	std::vector<int> *someValues = getValues(key);
+	if (someValues) {
+		someValues->insert(someValues->end(), values.begin(), values.end());
+	}
+	else {
+		std::vector<int>::iterator low = std::lower_bound(keys.begin(), keys.end(), key);
+		int index = low - keys.begin();
+		keys.insert(low, key);
+		someValues = new std::vector<int>(values);
+		this->values.insert(this->values.begin() + index, someValues);
+	}
+}
+
 LeafNode *LeafNode::split(int *keyToParent) {
 	int length = keys.size();
 	LeafNode *right = new LeafNode();

@@ -12,6 +12,7 @@ class LeafNode : public Node {
 		LeafNode *scan(const int start, const int end, const LeafNode *startLeaf, std::map<int, std::vector<int>> &result) const;
 		LeafNode *scanFull(std::map<int, std::vector<int>> &result) const;
 		void insert(const int key, const int value);
+		void insert(const int key, const std::vector<int> &values);
 		LeafNode *split(int *keyToParent);
 		bool update(const int key, const std::vector<int> &values);
 		bool remove(const int key);
