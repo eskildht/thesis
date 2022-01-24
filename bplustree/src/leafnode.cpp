@@ -42,17 +42,17 @@ bool LeafNode::remove(const int key) {
 }
 
 void LeafNode::insert(const int key, const int value) {
-	std::vector<int> *values = getValues(key);
-	if (values) {
-		values->push_back(value);
+	std::vector<int> *someValues = getValues(key);
+	if (someValues) {
+		someValues->push_back(value);
 	}
 	else {
 		std::vector<int>::iterator low = std::lower_bound(keys.begin(), keys.end(), key);
 		int index = low - keys.begin();
 		keys.insert(low, key);
-		values = new std::vector<int>();
-		values->push_back(value);
-		this->values.insert(this->values.begin() + index, values);
+		someValues = new std::vector<int>();
+		someValues->push_back(value);
+		values.insert(values.begin() + index, std::move(someValues));
 	}
 }
 
@@ -66,7 +66,7 @@ void LeafNode::insert(const int key, const std::vector<int> &values) {
 		int index = low - keys.begin();
 		keys.insert(low, key);
 		someValues = new std::vector<int>(values);
-		this->values.insert(this->values.begin() + index, someValues);
+		this->values.insert(this->values.begin() + index, std::move(someValues));
 	}
 }
 
