@@ -101,13 +101,16 @@ std::vector<std::future<void>> ParallelBplustree::update(const int key, const st
 	// Remove key from all but one Bplustree, then update or insert
 	// into that one
 	for (int i = 1; i < numTrees; i++) {
-		result.push_back(threadPool.push([this](int id, const int key, const std::vector<int> &values, const int treeIndex) { this->threadRemove(key, values, treeIndex); }, key, values, i));
+		result.push_back(threadPool.push([this](int id, const int key, const std::vector<int> &values, const int treeIndex) { this->threadRemove(key, treeIndex); }, key, values, i));
 	}
 	result.push_back(threadPool.push([this](int id, const int key, const std::vector<int> &values, const int treeIndex) { this->threadUpdateOrInsert(key, values, treeIndex); }, key, values, 0));
 	return result;
 }
 
-
+void ParallelBplustree::threadRemove(const int key, const int treeIndex) {
+	std::scoped_lock<std::mutex> lock(*treeLocks[treeIndex]);
+	trees[treeIndex]->remove(key);
+}
 
 void ParallelBplustree::waitForWorkToFinish() {
 	// Waits for the thread pool to finish all remaining tasks before
