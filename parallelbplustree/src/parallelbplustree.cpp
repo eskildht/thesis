@@ -19,7 +19,7 @@ ParallelBplustree::ParallelBplustree(const int order, const int numThreads, cons
 	}
 }
 
-void ParallelBplustree::threadInsert(int id, const int key, const int value, const int treeIndex) {
+void ParallelBplustree::threadInsert(const int key, const int value, const int treeIndex) {
 	std::scoped_lock<std::mutex> lock(*treeLocks[treeIndex]);
 	trees[treeIndex]->insert(key, value);
 }
@@ -29,7 +29,7 @@ std::future<void> ParallelBplustree::insert(const int key, const int value) {
 		for (int i = 0; i < numTrees; i++) {
 			if (treeFilters[i]->contains(key)) {
 				treeNumKeys[i]++;
-				return threadPool.push([this](int id, const int key, const int value, const int treeIndex) { this->threadInsert(id, key, value, treeIndex); }, key, value, i);
+				return threadPool.push([this](int id, const int key, const int value, const int treeIndex) { this->threadInsert(key, value, treeIndex); }, key, value, i);
 			}
 		}
 	}

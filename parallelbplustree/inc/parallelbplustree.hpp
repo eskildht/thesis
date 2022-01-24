@@ -22,6 +22,6 @@ class ParallelBplustree {
 		std::vector<bloom_filter *> treeFilters;
 		std::vector<int> treeNumKeys;
 		ctpl::thread_pool threadPool;
-		void threadInsert(int id, const int key, const int value, const int treeIndex);
+		void threadInsert(const int key, const int value, const int treeIndex);
 		const std::vector<int> *threadSearch(const int key, const int treeIndex) const;
 };
