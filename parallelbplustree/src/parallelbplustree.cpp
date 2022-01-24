@@ -69,6 +69,34 @@ std::vector<std::future<const std::vector<int> *>> ParallelBplustree::search(con
 	return result;
 }
 
+std::vector<std::future<void>> ParallelBplustree::update(const int key, const std::vector<int> &values) {
+	std::vector<std::future<void>> result;
+	bool keyWasFound = false;
+	if (useBloomFilters) {
+		for (int i = 0; i < numTrees; i++) {
+			// Some trees will hopefully not be operated on.
+			// Most likely one tree only if false positive probability is low
+			if (treeFilters[i]->contains(key)) {
+				// If multiple trees contain the key to be updated, make the key only
+				// belong to one tree.
+				if (!keyWasFound) {
+					keyWasFound = true;
+					result.push_back(threadPool.push([this](int id, const int key, const std::vector<int> &values, const int treeIndex) { this->threadUpdate(key, values, treeIndex); }, key, values, i));
+				}
+				else {
+					threadPool.push([this](int id, const int key, const int treeIndex) { this->threadRemove(key, treeIndex); }, key, i);
+				}
+			}
+		}
+		return result;
+	}
+	// All Bplustrees must be searched and potentially updated
+	for (int i = 0; i < numTrees; i++) {
+		result.push_back(threadPool.push([this](int id, const int key, const std::vector<int> &values, const int treeIndex) { this->threadUpdate(key, values, treeIndex); }, key, values, i));
+	}
+	return result;
+}
+
 // Waits for the thread pool to finish all remaining tasks before
 // stopping the pool. Since pool is stopped, the ParallelBplustree
 // instance from here on does not complete tasks as defined by

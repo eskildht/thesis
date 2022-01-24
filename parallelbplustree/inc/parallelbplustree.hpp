@@ -8,6 +8,7 @@ class ParallelBplustree {
 		~ParallelBplustree();
 		std::future<void> insert(const int key, const int value);
 		std::vector<std::future<const std::vector<int> *>> search(const int key);
+		std::vector<std::future<void>> update(const int key, const std::vector<int> &values);
 		void show();
 		void waitForWorkToFinish();
 
