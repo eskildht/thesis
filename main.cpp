@@ -17,7 +17,7 @@ void printHelpInfo() {
 	std::cout << "--threads  " << "Number of threads to use in the thread pool (default std::thread::hardware_concurrency())\n";
 	std::cout << "--trees    " << "Number of base Bplustrees (default std::thread::hardware_concurrency())\n";
 	std::cout << "--bloom    " << "Enable or disable bloom filter usage (default 1)\n";
-	std::cout << "--test     " << "The test to perform (default \"\"), MUST be passed with one of the following: insert, search\n";
+	std::cout << "--test     " << "The test to perform (default \"\"), MUST be passed with one of the following: insert, search, delete\n";
 	std::cout << "--op       " << "Number of operations to perform for the test specified (default 10000)\n";
 	std::cout << "--help     " << "Print this help\n";
 }
@@ -151,5 +151,8 @@ int main(int argc, char *argv[]) {
 	}
 	else if (test == "search") {
 		searchTest(op, &tree);
+	}
+	else if (test == "delete") {
+		deleteTest(op, &tree);
 	}
 }
