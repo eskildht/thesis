@@ -64,13 +64,17 @@ void searchTest(const int op, ParallelBplustree *tree) {
 	std::cout << "Performance: " << op / (ms_double.count() / 1000) << " ops\n";
 }
 
+void deleteTest(const int op, ParallelBplustree *tree) {
+	std::cout << "---Delete performance test---\n";
+}
+
 void insertTest(const int op, ParallelBplustree *tree) {
 	std::cout << "---Insert performance test---\n";
 	std::random_device rd;
 	std::mt19937_64 gen(rd());
 	int distLower = 1;
 	int distUpper = 1000000;
-	std::uniform_int_distribution<> distr(1, 1000000);
+	std::uniform_int_distribution<> distr(distLower, distUpper);
 	std::cout << "Insert operations to perform: " << op << "\n";
 	std::cout << "Key/Value pairs uniformly drawn from range [" << distLower << ", " << distUpper << "]\n";
 	std::vector<std::future<void>> futures;
