@@ -71,13 +71,9 @@ std::vector<std::future<const std::vector<int> *>> ParallelBplustree::search(con
 void ParallelBplustree::threadUpdateOrInsert(const int key, const std::vector<int> &values, const int treeIndex) {
 	std::scoped_lock<std::mutex> lock(*treeLocks[treeIndex]);
 	bool didUpdate = trees[treeIndex]->update(key, values);
-	if (didUpdate) {
-		return;
-	}
-	else {
+	if (!didUpdate) {
 		treeNumKeys[treeIndex]++;
 		trees[treeIndex]->insert(key, values);
-		return;
 	}
 }
 
@@ -110,6 +106,8 @@ std::vector<std::future<void>> ParallelBplustree::update(const int key, const st
 	result.push_back(threadPool.push([this](int id, const int key, const std::vector<int> &values, const int treeIndex) { this->threadUpdateOrInsert(key, values, treeIndex); }, key, values, 0));
 	return result;
 }
+
+
 
 void ParallelBplustree::waitForWorkToFinish() {
 	// Waits for the thread pool to finish all remaining tasks before
