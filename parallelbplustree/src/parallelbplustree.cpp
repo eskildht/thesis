@@ -43,7 +43,7 @@ std::future<void> ParallelBplustree::insert(const int key, const int value) {
 	if (useBloomFilters) {
 		treeFilters[it - treeNumKeys.begin()]->insert(key);
 	}
-	return threadPool.push([this](int id, const int key, const int value, const int treeIndex) { this->threadInsert(id, key, value, treeIndex); }, key, value, it - treeNumKeys.begin());
+	return threadPool.push([this](int id, const int key, const int value, const int treeIndex) { this->threadInsert(key, value, treeIndex); }, key, value, it - treeNumKeys.begin());
 }
 
 const std::vector<int> *ParallelBplustree::threadSearch(const int key, const int treeIndex) const {
@@ -69,6 +69,18 @@ std::vector<std::future<const std::vector<int> *>> ParallelBplustree::search(con
 	return result;
 }
 
+void ParallelBplustree::threadUpdateOrInsert(const int key, const std::vector<int> &values, const int treeIndex) {
+	std::scoped_lock<std::mutex> lock(*treeLocks[treeIndex]);
+	bool didUpdate = trees[treeIndex]->update(key, values);
+	if (didUpdate) {
+		return;
+	}
+	else {
+		trees[treeIndex]->insert(key, values);
+		return;
+	}
+}
+
 std::vector<std::future<void>> ParallelBplustree::update(const int key, const std::vector<int> &values) {
 	std::vector<std::future<void>> result;
 	if (useBloomFilters) {
@@ -81,7 +93,7 @@ std::vector<std::future<void>> ParallelBplustree::update(const int key, const st
 				// belong to one tree.
 				if (!keyWasFound) {
 					keyWasFound = true;
-					result.push_back(threadPool.push([this](int id, const int key, const std::vector<int> &values, const int treeIndex) { this->threadUpdate(key, values, treeIndex); }, key, values, i));
+					result.push_back(threadPool.push([this](int id, const int key, const std::vector<int> &values, const int treeIndex) { this->threadUpdateOrInsert(key, values, treeIndex); }, key, values, i));
 				}
 				else {
 					threadPool.push([this](int id, const int key, const int treeIndex) { this->threadRemove(key, treeIndex); }, key, i);
@@ -90,18 +102,20 @@ std::vector<std::future<void>> ParallelBplustree::update(const int key, const st
 		}
 		return result;
 	}
-	// All Bplustrees must be searched and potentially updated
-	for (int i = 0; i < numTrees; i++) {
-		result.push_back(threadPool.push([this](int id, const int key, const std::vector<int> &values, const int treeIndex) { this->threadUpdate(key, values, treeIndex); }, key, values, i));
+	// Remove key from all but one Bplustree, then update or insert 
+	// into that one
+	for (int i = 1; i < numTrees; i++) {
+		result.push_back(threadPool.push([this](int id, const int key, const std::vector<int> &values, const int treeIndex) { this->threadRemove(key, values, treeIndex); }, key, values, i));
 	}
+	result.push_back(threadPool.push([this](int id, const int key, const std::vector<int> &values, const int treeIndex) { this->threadUpdateOrInsert(key, values, treeIndex); }, key, values, 0));
 	return result;
 }
 
-// Waits for the thread pool to finish all remaining tasks before
-// stopping the pool. Since pool is stopped, the ParallelBplustree
-// instance from here on does not complete tasks as defined by
-// methods interacting with the pool.
 void ParallelBplustree::waitForWorkToFinish() {
+	// Waits for the thread pool to finish all remaining tasks before
+	// stopping the pool. Since pool is stopped, the ParallelBplustree
+	// instance from here on does not complete tasks as defined by
+	// methods interacting with the pool.
 	threadPool.stop(true);
 }
 
