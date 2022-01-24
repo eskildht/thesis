@@ -100,13 +100,15 @@ LeafNode *LeafNode::scanFull(std::map<int, std::vector<int>> &result) const {
 	return next;
 }
 
-void LeafNode::update(const int key, const std::vector<int> &values) {
+bool LeafNode::update(const int key, const std::vector<int> &values) {
 	std::vector<int>::iterator low = std::lower_bound(keys.begin(), keys.end(), key);
 	if (low - keys.begin() < keys.size()) {
 		if (key == keys[low - keys.begin()]) {
 			this->values[low - keys.begin()] = new std::vector<int>(values);
+			return true;
 		}
 	}
+	return false;
 }
 
 std::vector<std::vector<int> *> *LeafNode::getValues() {

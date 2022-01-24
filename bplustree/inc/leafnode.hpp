@@ -13,7 +13,7 @@ class LeafNode : public Node {
 		LeafNode *scanFull(std::map<int, std::vector<int>> &result) const;
 		void insert(const int key, const int value);
 		LeafNode *split(int *keyToParent);
-		void update(const int key, const std::vector<int> &values);
+		bool update(const int key, const std::vector<int> &values);
 		bool remove(const int key);
 		void merge(LeafNode *sibling);
 
