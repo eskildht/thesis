@@ -22,33 +22,42 @@ void printHelpInfo() {
 	std::cout << "--help     " << "Print this help\n";
 }
 
-void searchTest(const int op, ParallelBplustree *tree) {
-	std::cout << "---Search performance test---\n";
+void buildRandomTree(ParallelBplustree *tree, const int numInserts, const int distLower, const int distUpper) {
 	std::random_device rd;
 	std::mt19937_64 gen(rd());
-	int distLower = 1;
-	int distUpper = 500000;
 	std::uniform_int_distribution<> distr(distLower, distUpper);
-	int numKeyValuePairs = 500000;
-	std::cout << "Building tree with " << numKeyValuePairs << " key/value pairs uniformly drawn from range [" << distLower << ", " << distUpper << "]...\n";
+	std::cout << "Tree to be built by " << numInserts << " inserts\n";
+	std::cout << "Key/value pairs uniformly drawn from range [" << distLower << ", " << distUpper << "]\n";
+	std::cout << "Building...\n";
 	std::vector<std::future<void>> buildFutures;
 	std::chrono::steady_clock::time_point t1 = std::chrono::high_resolution_clock::now();
-	for(int i = 0; i < numKeyValuePairs; i++) {
+	for(int i = 0; i < numInserts; i++) {
 		int k = distr(gen);
 		int v = distr(gen);
 		buildFutures.push_back(std::move(tree->insert(k, v)));
 	}
-	for(int i = 0; i < numKeyValuePairs; i++) {
+	for(int i = 0; i < numInserts; i++) {
 		buildFutures[i].wait();
 	}
 	std::chrono::steady_clock::time_point t2 = std::chrono::high_resolution_clock::now();
 	std::chrono::duration<double, std::milli> ms_double = t2 - t1;
-	std::cout << "Build finished in " << ms_double.count() << " ms\n";
+	std::cout << "Build finished in: " << ms_double.count() << " ms\n";
+	std::cout << "Build performance: " << numInserts / (ms_double.count() / 1000) << " ops\n";
+}
+
+void searchTest(const int op, ParallelBplustree *tree) {
+	std::cout << "---Search performance test---\n";
+	int distLower = 1;
+	int distUpper = 500000;
+	buildRandomTree(tree, 1000000, distLower, distUpper);
 	std::cout << "Search operations to perform: " << op << "\n";
-	std::cout << "Search keys drawn from same range\n";
+	std::random_device rd;
+	std::mt19937_64 gen(rd());
+	std::uniform_int_distribution<> distr(distLower, distUpper);
+	std::cout << "Keys to search for uniformly drawn from range [" << distLower << ", " << distUpper << "]\n";
 	std::cout << "Searching...\n";
 	std::vector<std::vector<std::future<const std::vector<int> *>>> searchFutures;
-	t1 = std::chrono::high_resolution_clock::now();
+	std::chrono::steady_clock::time_point t1 = std::chrono::high_resolution_clock::now();
 	for (int i = 0; i < op; i++) {
 		int k = distr(gen);
 		searchFutures.push_back(std::move(tree->search(k)));
@@ -58,10 +67,10 @@ void searchTest(const int op, ParallelBplustree *tree) {
 			searchFutures[i][j].wait();
 		}
 	}
-	t2 = std::chrono::high_resolution_clock::now();
-	ms_double = t2 - t1;
-	std::cout << ms_double.count() << " ms spent on search operation\n";
-	std::cout << "Performance: " << op / (ms_double.count() / 1000) << " ops\n";
+	std::chrono::steady_clock::time_point t2 = std::chrono::high_resolution_clock::now();
+	std::chrono::duration<double, std::milli> ms_double = t2 - t1;
+	std::cout << "Search finished in: " << ms_double.count() << " ms\n";
+	std::cout << "Search performance: " << op / (ms_double.count() / 1000) << " ops\n";
 }
 
 void deleteTest(const int op, ParallelBplustree *tree) {
@@ -70,29 +79,9 @@ void deleteTest(const int op, ParallelBplustree *tree) {
 
 void insertTest(const int op, ParallelBplustree *tree) {
 	std::cout << "---Insert performance test---\n";
-	std::random_device rd;
-	std::mt19937_64 gen(rd());
 	int distLower = 1;
-	int distUpper = 1000000;
-	std::uniform_int_distribution<> distr(distLower, distUpper);
-	std::cout << "Insert operations to perform: " << op << "\n";
-	std::cout << "Key/Value pairs uniformly drawn from range [" << distLower << ", " << distUpper << "]\n";
-	std::vector<std::future<void>> futures;
-	std::chrono::steady_clock::time_point t1 = std::chrono::high_resolution_clock::now();
-	// Insert op number of key, value pair
-	for(int i = 0; i < op; i++) {
-		int k = distr(gen);
-		int v = distr(gen);
-		futures.push_back(std::move(tree->insert(k, v)));
-	}
-	// Wait for all insert operations to complete
-	for(int i = 0; i < op; i++) {
-		futures[i].wait();
-	}
-	std::chrono::steady_clock::time_point t2 = std::chrono::high_resolution_clock::now();
-	std::chrono::duration<double, std::milli> ms_double = t2 - t1;
-	std::cout << ms_double.count() << " ms spent on insert operation\n";
-	std::cout << "Performance: " << op / (ms_double.count() / 1000) << " ops\n";
+	int distUpper = 500000;
+	buildRandomTree(tree, op, distLower, distUpper);
 }
 
 int main(int argc, char *argv[]) {
