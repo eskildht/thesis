@@ -76,6 +76,7 @@ void ParallelBplustree::threadUpdateOrInsert(const int key, const std::vector<in
 		return;
 	}
 	else {
+		treeNumKeys[treeIndex]++;
 		trees[treeIndex]->insert(key, values);
 		return;
 	}
