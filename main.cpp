@@ -71,23 +71,15 @@ void searchTest(const int op, ParallelBplustree *tree) {
 	std::cout << "Calculating statistics...\n";
 	std::chrono::duration<double, std::milli> ms_double = t2 - t1;
 	int hits = 0;
-	int misses = 0;
 	for (int i = 0; i < op; i++) {
-		bool searchHit = false;
 		for (int j = 0; j < searchFutures[i].size(); j++) {
-			const std::vector<int> *treeValues = searchFutures[i][j].get();
-			if (treeValues) {
-				searchHit = true;
+			if (searchFutures[i][j].get()) {
+				hits++;
 				break;
 			}
 		}
-		if (searchHit) {
-			hits++;
-		}
-		else {
-			misses++;
-		}
 	}
+	int misses = op - hits;
 	std::cout << "Search finished in: " << ms_double.count() << " ms\n";
 	std::cout << "Search key hits: " << hits << "\n";
 	std::cout << "Search key misses: " << misses << "\n";
