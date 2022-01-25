@@ -92,11 +92,47 @@ void searchTest(const int op, ParallelBplustree *tree) {
 	std::cout << "Search key hits: " << hits << "\n";
 	std::cout << "Search key misses: " << misses << "\n";
 	std::cout << "Search performance: " << op / (ms_double.count() / 1000) << " ops\n";
-
 }
 
 void deleteTest(const int op, ParallelBplustree *tree) {
 	std::cout << "---Delete performance test---\n";
+	int distLower = 1;
+	int distUpper = 500000;
+	buildRandomTree(tree, 1000000, distLower, distUpper);
+	std::cout << "Delete operations to perform: " << op << "\n";
+	std::random_device rd;
+	std::mt19937_64 gen(rd());
+	std::uniform_int_distribution<> distr(distLower, distUpper);
+	std::cout << "Keys to search for uniformly drawn from range [" << distLower << ", " << distUpper << "]\n";
+	std::cout << "Deleting...\n";
+	std::vector<std::vector<std::future<bool>>> deleteFutures;
+	std::chrono::steady_clock::time_point t1 = std::chrono::high_resolution_clock::now();
+	for (int i = 0; i < op; i++) {
+		int k = distr(gen);
+		deleteFutures.push_back(std::move(tree->remove(k)));
+	}
+	for (int i = 0; i < op; i++) {
+		for (int j = 0; j < deleteFutures[i].size(); j++) {
+			deleteFutures[i][j].wait();
+		}
+	}
+	std::chrono::steady_clock::time_point t2 = std::chrono::high_resolution_clock::now();
+	std::cout << "Calculating statistics...\n";
+	std::chrono::duration<double, std::milli> ms_double = t2 - t1;
+	int hits = 0;
+	for (int i = 0; i < op; i++) {
+		for (int j = 0; j < deleteFutures[i].size(); j++) {
+			if (deleteFutures[i][j].get()) {
+				hits++;
+				break;
+			}
+		}
+	}
+	int misses = op - hits;
+	std::cout << "Delete finished in: " << ms_double.count() << " ms\n";
+	std::cout << "Delete key hits: " << hits << "\n";
+	std::cout << "Delete key misses: " << misses << "\n";
+	std::cout << "Delete performance: " << op / (ms_double.count() / 1000) << " ops\n";
 }
 
 void insertTest(const int op, ParallelBplustree *tree) {
