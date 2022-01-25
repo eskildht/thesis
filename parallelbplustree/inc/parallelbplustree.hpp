@@ -12,8 +12,8 @@ class ParallelBplustree {
 		std::vector<std::future<bool>> remove(const int key);
 		void show();
 		void waitForWorkToFinish();
-		void readjustTreeInsertOp();
-		const std::vector<int> &getTreeNumKeys();
+		void readjustTreeNumInsertOp();
+		const std::vector<int> &getTreeNumKeyValuePairs();
 
 	private:
 		const int order;

@@ -154,14 +154,14 @@ std::vector<std::future<bool>> ParallelBplustree::remove(const int key) {
 	return result;
 }
 
-void ParallelBplustree::readjustTreeInsertOp() {
+void ParallelBplustree::readjustTreeNumInsertOp() {
 	for (int i = 0; i < numTrees; i++) {
 		std::scoped_lock<std::mutex> lock(*treeNumKeyValuePairsLocks[i]);
 		treeNumInsertOp[i] = treeNumKeyValuePairs[i];
 	}
 }
 
-const std::vector<int> &ParallelBplustree::getTreeNumKeys() {
+const std::vector<int> &ParallelBplustree::getTreeNumKeyValuePairs() {
 	return treeNumKeyValuePairs;
 }
 
