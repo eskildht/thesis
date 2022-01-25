@@ -12,7 +12,7 @@ class ParallelBplustree {
 		std::vector<std::future<bool>> remove(const int key);
 		void show();
 		void waitForWorkToFinish();
-		void readjustTreeNumUniqueKeyInsertOp();
+		void readjustTreeInsertOp();
 		const std::vector<int> &getTreeNumKeys();
 
 	private:
@@ -23,9 +23,9 @@ class ParallelBplustree {
 		std::vector<Bplustree *> trees;
 		std::vector<std::mutex *> treeLocks;
 		std::vector<bloom_filter *> treeFilters;
-		std::vector<int> treeNumKeys;
-		std::vector<int> treeNumUniqueKeyInsertOp;
-		std::vector<std::mutex *> treeNumKeysLocks;
+		std::vector<int> treeNumKeyValuePairs;
+		std::vector<int> treeNumInsertOp;
+		std::vector<std::mutex *> treeNumKeyValuePairsLocks;
 		ctpl::thread_pool threadPool;
 		void threadInsert(const int key, const int value, const int treeIndex);
 		const std::vector<int> *threadSearch(const int key, const int treeIndex) const;
