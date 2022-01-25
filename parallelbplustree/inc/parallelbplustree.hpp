@@ -13,6 +13,7 @@ class ParallelBplustree {
 		void show();
 		void waitForWorkToFinish();
 		void readjustTreeNumUniqueKeyInsertOp();
+		const std::vector<int> &getTreeNumKeys();
 
 	private:
 		const int order;

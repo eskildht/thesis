@@ -160,6 +160,10 @@ void ParallelBplustree::readjustTreeNumUniqueKeyInsertOp() {
 	}
 }
 
+const std::vector<int> &ParallelBplustree::getTreeNumKeys() {
+	return treeNumKeys;
+}
+
 void ParallelBplustree::waitForWorkToFinish() {
 	// Waits for the thread pool to finish all remaining tasks before
 	// stopping the pool. Since pool is stopped, the ParallelBplustree
