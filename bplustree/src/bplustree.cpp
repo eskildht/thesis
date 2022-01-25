@@ -164,16 +164,16 @@ LeafNode *Bplustree::getLeftLeaf() {
 	return static_cast<LeafNode *>(node);
 }
 
-void Bplustree::remove(const int key) {
+bool Bplustree::remove(const int key) {
 	/*
 	Database Management Systems, 3rd Edition pp. 352-356
 	used as guideline.
 	*/
 	int *oldChildEntry = nullptr;
-	remove(nullptr, root, key, oldChildEntry);
+	return remove(nullptr, root, key, oldChildEntry);
 }
 
-void Bplustree::remove(InternalNode *parent, Node *node, const int key, int *&oldChildEntry) {
+bool Bplustree::remove(InternalNode *parent, Node *node, const int key, int *&oldChildEntry) {
 	if (!node->isLeaf()) {
 		InternalNode *internal = static_cast<InternalNode *>(node);
 		std::vector<int> *keys = internal->getKeys();
@@ -185,39 +185,39 @@ void Bplustree::remove(InternalNode *parent, Node *node, const int key, int *&ol
 		else {
 			nextNode = (*(internal->getChildren()))[low - keys->begin()];
 		}
-		remove(internal, nextNode, key, oldChildEntry);
+		bool didRemove = remove(internal, nextNode, key, oldChildEntry);
 		if (!oldChildEntry) {
-			return;
+			return didRemove;
 		}
 		else {
 			internal->removeByKeyIndex(*oldChildEntry);
 			delete oldChildEntry;
 			oldChildEntry = nullptr;
 			if (!internal->hasUnderflow(order, root)) {
-				return;
+				return didRemove;
 			}
 			else {
 				if (internal == root) {
 					root = (*(internal->getChildren()))[0];
 					delete internal;
-					return;
+					return didRemove;
 				}
 				auto [sibling, siblingIsOnRHS, splittingKey, splittingKeyIndex] = parent->getSibling(internal, order, root);
 				InternalNode *internalSibling = static_cast<InternalNode *>(sibling);
 				if (internalSibling->hasExtraEntries(order, root)) {
 					parent->redistribute(internal, internalSibling, siblingIsOnRHS, splittingKey, splittingKeyIndex);
-					return;
+					return didRemove;
 				}
 				else {
 					oldChildEntry = new int;
 					*oldChildEntry = splittingKeyIndex;
 					if (siblingIsOnRHS) {
 						internal->merge(internalSibling, splittingKey);
-						return;
+						return didRemove;
 					}
 					else {
 						internalSibling->merge(internal, splittingKey);
-						return;
+						return didRemove;
 					}
 				}
 			}
@@ -227,31 +227,30 @@ void Bplustree::remove(InternalNode *parent, Node *node, const int key, int *&ol
 		LeafNode *leaf = static_cast<LeafNode *>(node);
 		oldChildEntry = nullptr;
 		if (leaf->hasExtraEntries(order, root)) {
-			leaf->remove(key);
-			return;
+			return leaf->remove(key);
 		}
 		else {
 			bool keyWasRemoved = leaf->remove(key);
+			// key is not present in tree so we can return
 			if (!keyWasRemoved) {
-				// key is not present in tree so we can return
-				return;
+				return false;
 			}
 			auto [sibling, siblingIsOnRHS, splittingKey, splittingKeyIndex] = parent->getSibling(leaf, order, root);
 			LeafNode *leafSibling = static_cast<LeafNode *>(sibling);
 			if (sibling->hasExtraEntries(order, root)) {
 				parent->redistribute(leaf, leafSibling, siblingIsOnRHS, splittingKey, splittingKeyIndex);
-				return;
+				return true;
 			}
 			else {
 				oldChildEntry = new int;
 				*oldChildEntry = splittingKeyIndex;
 				if (siblingIsOnRHS) {
 					leaf->merge(leafSibling);
-					return;
+					return true;
 				}
 				else {
 					leafSibling->merge(leaf);
-					return;
+					return true;
 				}
 			}
 		}
