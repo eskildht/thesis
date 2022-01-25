@@ -5,6 +5,7 @@ ParallelBplustree::ParallelBplustree(const int order, const int numThreads, cons
 		trees.push_back(new Bplustree(order));
 		treeLocks.push_back(new std::mutex);
 		treeNumKeys.push_back(0);
+		treeNumKeysLocks.push_back(new std::mutex);
 	}
 	if (useBloomFilters) {
 		bloom_parameters parameters;
@@ -71,15 +72,22 @@ std::vector<std::future<const std::vector<int> *>> ParallelBplustree::search(con
 }
 
 void ParallelBplustree::threadUpdateOrInsert(const int key, const std::vector<int> &values, const int treeIndex) {
-	std::scoped_lock<std::mutex> lock(*treeLocks[treeIndex]);
-	bool didUpdate = trees[treeIndex]->update(key, values);
+	bool didUpdate;
+	{
+		std::scoped_lock<std::mutex> lock(*treeLocks[treeIndex]);
+		didUpdate = trees[treeIndex]->update(key, values);
+	}
 	if (!didUpdate) {
-		treeNumKeys[treeIndex]++;
+		{
+			std::scoped_lock<std::mutex> lock(*treeNumKeysLocks[treeIndex]);
+			treeNumKeys[treeIndex]++;
+		}
+		std::scoped_lock<std::mutex> lock(*treeLocks[treeIndex]);
 		trees[treeIndex]->insert(key, values);
 	}
 }
 
-std::vector<std::future<void>> ParallelBplustree::update(const int key, const std::vector<int> &values) {
+std::vector<std::future<void>> ParallelBplustree::updateOrInsert(const int key, const std::vector<int> &values) {
 	std::vector<std::future<void>> result;
 	if (useBloomFilters) {
 		bool keyWasFound = false;
