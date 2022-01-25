@@ -21,7 +21,6 @@ ParallelBplustree::ParallelBplustree(const int order, const int numThreads, cons
 
 void ParallelBplustree::threadInsert(const int key, const int value, const int treeIndex) {
 	std::scoped_lock<std::mutex> lock(*treeLocks[treeIndex]);
-	treeNumKeys[treeIndex]++;
 	trees[treeIndex]->insert(key, value);
 }
 
@@ -29,6 +28,7 @@ std::future<void> ParallelBplustree::insert(const int key, const int value) {
 	if (useBloomFilters) {
 		for (int i = 0; i < numTrees; i++) {
 			if (treeFilters[i]->contains(key)) {
+				treeNumKeys[i]++;
 				return threadPool.push([this](int id, const int key, const int value, const int treeIndex) { this->threadInsert(key, value, treeIndex); }, key, value, i);
 			}
 		}
@@ -39,10 +39,12 @@ std::future<void> ParallelBplustree::insert(const int key, const int value) {
 	// However, by keeping the false positive probability low
 	// most keys in the first case will only occur in one of the trees.
 	std::vector<int>::iterator it = std::min_element(treeNumKeys.begin(), treeNumKeys.end());
+	const int treeIndex = it - treeNumKeys.begin();
 	if (useBloomFilters) {
-		treeFilters[it - treeNumKeys.begin()]->insert(key);
+		treeFilters[treeIndex]->insert(key);
 	}
-	return threadPool.push([this](int id, const int key, const int value, const int treeIndex) { this->threadInsert(key, value, treeIndex); }, key, value, it - treeNumKeys.begin());
+	treeNumKeys[treeIndex]++;
+	return threadPool.push([this](int id, const int key, const int value, const int treeIndex) { this->threadInsert(key, value, treeIndex); }, key, value, treeIndex);
 }
 
 const std::vector<int> *ParallelBplustree::threadSearch(const int key, const int treeIndex) const {
