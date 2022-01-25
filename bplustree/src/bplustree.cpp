@@ -106,11 +106,22 @@ void Bplustree::findSearchPath(const int key, Node *node, std::stack<Node *> *pa
 	std::vector<int>::iterator low = std::lower_bound(keys->begin(), keys->end(), key);
 	InternalNode *internal = static_cast<InternalNode *>(node);
 	Node *nextNode = nullptr;
-	if (key == (*keys)[low - keys->begin()]) {
-		nextNode = (*(internal->getChildren()))[low - keys->begin() + 1];
+	int index = low - keys->begin();
+	if (index < keys->size()) {
+		// Move to right child
+		if (key == (*keys)[index]) {
+			nextNode = (*(internal->getChildren()))[index + 1];
+		}
+		// Move to left child
+		else {
+			nextNode = (*(internal->getChildren()))[index];
+		}
 	}
+	// Iterator found keys->end() i.e. last.
+	// Index is thus not valid in keys, but we should move to right child.
+	// Note that index correctly identifies the child without adding 1.
 	else {
-		nextNode = (*(internal->getChildren()))[low - keys->begin()];
+		nextNode = (*(internal->getChildren()))[index];
 	}
 	findSearchPath(key, nextNode, path);
 }
