@@ -109,23 +109,23 @@ std::vector<std::future<void>> ParallelBplustree::update(const int key, const st
 	return result;
 }
 
-void ParallelBplustree::threadRemove(const int key, const int treeIndex) {
+bool ParallelBplustree::threadRemove(const int key, const int treeIndex) {
 	std::scoped_lock<std::mutex> lock(*treeLocks[treeIndex]);
-	trees[treeIndex]->remove(key);
+	return trees[treeIndex]->remove(key);
 }
 
-std::vector<std::future<void>> ParallelBplustree::remove(const int key) {
-	std::vector<std::future<void>> result;
+std::vector<std::future<bool>> ParallelBplustree::remove(const int key) {
+	std::vector<std::future<bool>> result;
 	if (useBloomFilters) {
 		for (int i = 0; i < numTrees; i++) {
 			if (treeFilters[i]->contains(key)) {
-				result.push_back(threadPool.push([this](int id, const int key, const int treeIndex) { this->threadRemove(key, treeIndex); }, key, i));
+				result.push_back(threadPool.push([this](int id, const int key, const int treeIndex) { return this->threadRemove(key, treeIndex); }, key, i));
 			}
 		}
 		return result;
 	}
 	for (int i = 0; i < numTrees; i++) {
-		result.push_back(threadPool.push([this](int id, const int key, const int treeIndex) { this->threadRemove(key, treeIndex); }, key, i));
+		result.push_back(threadPool.push([this](int id, const int key, const int treeIndex) { return this->threadRemove(key, treeIndex); }, key, i));
 	}
 	return result;
 }
