@@ -133,6 +133,13 @@ const std::vector<int> *Bplustree::search(const int key) {
 	return leaf->getValues(key);
 }
 
+std::vector<int> *Bplustree::search(const int key, AccessKey *accessKey) {
+	std::stack<Node *> path;
+	findSearchPath(key, root, &path);
+	LeafNode *leaf = static_cast<LeafNode *>(path.top());
+	return leaf->getValues(key);
+}
+
 std::map<int, std::vector<int>> Bplustree::scan(const int start, const int end) {
 	std::stack<Node *> path;
 	findSearchPath(start, root, &path);
