@@ -168,6 +168,9 @@ std::vector<std::future<void>> ParallelBplustree::updateOrInsert(const int key, 
 				}
 			}
 		}
+		if (!keyWasFound) {
+			result.push_back(threadPool.push([this](int id, const int key, const std::vector<int> &values, const int treeIndex) { this->threadUpdateOrInsert(key, values, treeIndex); }, key, values, 0));
+		}
 		return result;
 	}
 	// Remove key from all but one Bplustree, then update or insert
