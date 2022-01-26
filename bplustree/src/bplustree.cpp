@@ -178,12 +178,18 @@ bool Bplustree::remove(InternalNode *parent, Node *node, const int key, int *&ol
 		InternalNode *internal = static_cast<InternalNode *>(node);
 		std::vector<int> *keys = internal->getKeys();
 		std::vector<int>::iterator low = std::lower_bound(keys->begin(), keys->end(), key);
+		int index = low - keys->begin();
 		Node *nextNode = nullptr;
-		if (key == (*keys)[low - keys->begin()]) {
-			nextNode = (*(internal->getChildren()))[low - keys->begin() + 1];
+		if (index < keys->size()) {
+			if (key == (*keys)[index]) {
+				nextNode = (*(internal->getChildren()))[index + 1];
+			}
+			else {
+				nextNode = (*(internal->getChildren()))[index];
+			}
 		}
 		else {
-			nextNode = (*(internal->getChildren()))[low - keys->begin()];
+			nextNode = (*(internal->getChildren()))[index];
 		}
 		bool didRemove = remove(internal, nextNode, key, oldChildEntry);
 		if (!oldChildEntry) {
