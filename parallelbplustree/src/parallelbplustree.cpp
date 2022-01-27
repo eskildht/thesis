@@ -131,7 +131,7 @@ std::vector<std::future<bool>> ParallelBplustree::update(const int key, const st
 	return result;
 }
 
-void ParallelBplustree::threadUpdateOrInsert(const int key, const std::vector<int> &values, const int treeIndex) {
+bool ParallelBplustree::threadUpdateOrInsert(const int key, const std::vector<int> &values, const int treeIndex) {
 	bool didUpdate;
 	{
 		std::scoped_lock<std::mutex> lock(*treeLocks[treeIndex]);
@@ -141,10 +141,11 @@ void ParallelBplustree::threadUpdateOrInsert(const int key, const std::vector<in
 		std::scoped_lock<std::mutex> lock(*treeLocks[treeIndex]);
 		trees[treeIndex]->insert(key, values);
 	}
+	return didUpdate;
 }
 
-std::vector<std::future<void>> ParallelBplustree::updateOrInsert(const int key, const std::vector<int> &values) {
-	std::vector<std::future<void>> result;
+std::vector<std::future<bool>> ParallelBplustree::updateOrInsert(const int key, const std::vector<int> &values) {
+	std::vector<std::future<bool>> result;
 	if (useBloomFilters) {
 		bool keyWasFound = false;
 		for (int i = 0; i < numTrees; i++) {
@@ -155,27 +156,23 @@ std::vector<std::future<void>> ParallelBplustree::updateOrInsert(const int key, 
 				// belong to one tree.
 				if (!keyWasFound) {
 					keyWasFound = true;
-					result.push_back(threadPool.push([this](int id, const int key, const std::vector<int> &values, const int treeIndex) { this->threadUpdateOrInsert(key, values, treeIndex); }, key, values, i));
+					result.push_back(threadPool.push([this](int id, const int key, const std::vector<int> &values, const int treeIndex) { return this->threadUpdateOrInsert(key, values, treeIndex); }, key, values, i));
 				}
 				else {
-					threadPool.push([this](int id, const int key, const int treeIndex) { this->threadRemove(key, treeIndex); }, key, i);
+					result.push_back(threadPool.push([this](int id, const int key, const int treeIndex) { return this->threadRemove(key, treeIndex); }, key, i));
 				}
 			}
 		}
 		if (!keyWasFound) {
-			result.push_back(threadPool.push([this](int id, const int key, const std::vector<int> &values, const int treeIndex) { this->threadInsert(key, values, treeIndex); }, key, values, updateOrInsertTreeSelector));
+			result.push_back(threadPool.push([this](int id, const int key, const std::vector<int> &values, const int treeIndex) { this->threadInsert(key, values, treeIndex); return false; }, key, values, updateOrInsertTreeSelector));
 			updateOrInsertTreeSelector = (updateOrInsertTreeSelector + 1) % numTrees;
 		}
 		return result;
 	}
-	// Remove key from all but one Bplustree, then update or insert
-	// into that one
+	result.push_back(threadPool.push([this](int id, const int key, const std::vector<int> &values, const int treeIndex) { return this->threadUpdateOrInsert(key, values, treeIndex); }, key, values, updateOrInsertTreeSelector));
 	for (int i = 0; i < numTrees; i++) {
 		if (i != updateOrInsertTreeSelector) {
-			result.push_back(threadPool.push([this](int id, const int key, const std::vector<int> &values, const int treeIndex) { this->threadRemove(key, treeIndex); }, key, values, i));
-		}
-		else {
-			result.push_back(threadPool.push([this](int id, const int key, const std::vector<int> &values, const int treeIndex) { this->threadUpdateOrInsert(key, values, treeIndex); }, key, values, updateOrInsertTreeSelector));
+			result.push_back(threadPool.push([this](int id, const int key, const std::vector<int> &values, const int treeIndex) { return this->threadRemove(key, treeIndex); }, key, values, i));
 		}
 	}
 	updateOrInsertTreeSelector = (updateOrInsertTreeSelector + 1) % numTrees;

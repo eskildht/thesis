@@ -204,9 +204,10 @@ void MainPB::updateOrInsertTest(const int op) {
 	std::uniform_int_distribution<> valuesDist(valuesDistLower, valuesDistUpper);
 	std::cout << "Keys to update uniformly drawn from range [" << keyDistLower << ", " << keyDistUpper << "]\n";
 	std::cout << "Updates performed with " <<  valuesDistLower << "-" << valuesDistUpper << " values\n";
+	std::cout << "Retrieving number of keys in each sub Bplustree for later use...\n";
 	std::vector<int> beforeTreeNumKeys = tree.getTreeNumKeys();
 	std::cout << "Updating...\n";
-	std::vector<std::vector<std::future<void>>> updateFutures;
+	std::vector<std::vector<std::future<bool>>> updateFutures;
 	updateFutures.reserve(op);
 	std::chrono::duration<double, std::milli> ms_double(0);
 	std::chrono::steady_clock::time_point t1;
@@ -231,22 +232,25 @@ void MainPB::updateOrInsertTest(const int op) {
 		}
 	}
 	std::cout << "Calculating statistics...\n";
-	std::cout << "Number of unique keys in each tree before update:\n[";
+	std::cout << "Number of unique keys in each tree before update: [";
 	for (int i = 0; i < beforeTreeNumKeys.size() - 1; i++) {
 		std::cout << beforeTreeNumKeys[i] << ", ";
 	}
 	std::cout << beforeTreeNumKeys[beforeTreeNumKeys.size() - 1] << "]\n";
-	int misses = 0;
-	std::cout << "Number of unique keys in each tree after update:\n[";
+	std::cout << "Number of unique keys in each tree after update: [";
 	std::vector<int> afterTreeNumKeys = tree.getTreeNumKeys();
 	for (int i = 0; i < afterTreeNumKeys.size() - 1; i++) {
 		std::cout << afterTreeNumKeys[i] << ", ";
-		misses += afterTreeNumKeys[i] - beforeTreeNumKeys[i];
 	}
-	misses += afterTreeNumKeys[afterTreeNumKeys.size() - 1] - beforeTreeNumKeys[beforeTreeNumKeys.size() - 1];
 	std::cout << afterTreeNumKeys[afterTreeNumKeys.size() - 1] << "]\n";
-	int hits = op - misses;
-	std::cout << "Update or insert finished in: " << ms_double.count() << " ms\n";
+	int hits = 0;
+	for (int i = 0; i < updateFutures.size(); i++) {
+		if (updateFutures[i][0].get()) {
+			hits++;
+		}
+	}
+	int misses = op - hits;
+	std::cout << "Update finished in: " << ms_double.count() << " ms\n";
 	std::cout << "Successful updates: " << hits << "\n";
 	std::cout << "Unsuccessful updates leading to inserts: " << misses << "\n";
 	std::cout << "Update or insert performance: " << op / (ms_double.count() / 1000) << " ops\n";
