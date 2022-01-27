@@ -136,10 +136,7 @@ std::vector<std::future<bool>> ParallelBplustree::update(const int key, const st
 
 void ParallelBplustree::threadUpdateOrInsert(const int key, const std::vector<int> &values, const int treeIndex) {
 	bool didUpdate;
-	{
-		std::scoped_lock<std::mutex> lock(*treeLocks[treeIndex]);
-		didUpdate = trees[treeIndex]->update(key, values);
-	}
+	{ std::scoped_lock<std::mutex> lock(*treeLocks[treeIndex]); didUpdate = trees[treeIndex]->update(key, values); }
 	if (!didUpdate) {
 		{
 			std::scoped_lock<std::mutex> lock(*treeLocks[treeIndex]);
@@ -204,6 +201,7 @@ std::vector<std::future<bool>> ParallelBplustree::remove(const int key) {
 		for (int i = 0; i < numTrees; i++) {
 			if (treeFilters[i]->contains(key)) {
 				result.push_back(threadPool.push([this](int id, const int key, const int treeIndex) { return this->threadRemove(key, treeIndex); }, key, i));
+				treeNumInsertOp[i]--;
 			}
 		}
 		return result;
