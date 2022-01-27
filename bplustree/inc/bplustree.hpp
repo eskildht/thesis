@@ -28,6 +28,7 @@ class Bplustree {
 		std::map<int, std::vector<int>> scanFull();
 		bool remove(const int key);
 		void show();
+		int getNumKeysStored();
 
 	private:
 		int order;

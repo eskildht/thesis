@@ -324,3 +324,14 @@ void Bplustree::destroy(Node *node) {
 	}
 	delete node;
 }
+
+int Bplustree::getNumKeysStored() {
+	LeafNode *startLeaf = getLeftLeaf();
+	LeafNode *leaf = startLeaf->getNext();
+	int sum = 0;
+	while (startLeaf != leaf) {
+		sum += leaf->getKeys()->size();
+	}
+	sum += startLeaf->getKeys()->size();
+	return sum;
+}
