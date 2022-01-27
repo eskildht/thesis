@@ -121,6 +121,9 @@ std::vector<std::future<bool>> ParallelBplustree::update(const int key, const st
 				if (oldValues) {
 					oldValuesFound = true;
 					oldValues->assign(values.begin(), values.end());
+					std::promise<bool> tmpPromise;
+					tmpPromise.set_value(true);
+					result.push_back(std::move(tmpPromise.get_future()));
 				}
 			}
 			else if (oldValues) {
