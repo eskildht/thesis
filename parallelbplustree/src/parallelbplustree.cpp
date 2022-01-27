@@ -4,8 +4,6 @@ ParallelBplustree::ParallelBplustree(const int order, const int numThreads, cons
 	for (int i = 0; i < numTrees; i++) {
 		trees.push_back(new Bplustree(order));
 		treeLocks.push_back(new std::mutex);
-		treeNumKeyValuePairsLocks.push_back(new std::mutex);
-		treeNumKeyValuePairs.push_back(0);
 		treeNumInsertOp.push_back(0);
 	}
 	if (useBloomFilters) {
@@ -22,14 +20,8 @@ ParallelBplustree::ParallelBplustree(const int order, const int numThreads, cons
 }
 
 void ParallelBplustree::threadInsert(const int key, const int value, const int treeIndex) {
-	{
-		std::scoped_lock<std::mutex> lock(*treeLocks[treeIndex]);
-		trees[treeIndex]->insert(key, value);
-	}
-	{
-		std::scoped_lock<std::mutex> lock(*treeNumKeyValuePairsLocks[treeIndex]);
-		treeNumKeyValuePairs[treeIndex]++;
-	}
+	std::scoped_lock<std::mutex> lock(*treeLocks[treeIndex]);
+	trees[treeIndex]->insert(key, value);
 }
 
 std::future<void> ParallelBplustree::insert(const int key, const int value) {
@@ -138,14 +130,8 @@ void ParallelBplustree::threadUpdateOrInsert(const int key, const std::vector<in
 	bool didUpdate;
 	{ std::scoped_lock<std::mutex> lock(*treeLocks[treeIndex]); didUpdate = trees[treeIndex]->update(key, values); }
 	if (!didUpdate) {
-		{
-			std::scoped_lock<std::mutex> lock(*treeLocks[treeIndex]);
-			trees[treeIndex]->insert(key, values);
-		}
-		{
-			std::scoped_lock<std::mutex> lock(*treeNumKeyValuePairsLocks[treeIndex]);
-			treeNumKeyValuePairs[treeIndex]++;
-		}
+		std::scoped_lock<std::mutex> lock(*treeLocks[treeIndex]);
+		trees[treeIndex]->insert(key, values);
 	}
 }
 
@@ -183,16 +169,8 @@ std::vector<std::future<void>> ParallelBplustree::updateOrInsert(const int key, 
 }
 
 bool ParallelBplustree::threadRemove(const int key, const int treeIndex) {
-	bool didRemove;
-	{
-		std::scoped_lock<std::mutex> lock(*treeLocks[treeIndex]);
-		didRemove = trees[treeIndex]->remove(key);
-	}
-	if (didRemove) {
-		std::scoped_lock<std::mutex> lock(*treeNumKeyValuePairsLocks[treeIndex]);
-		treeNumKeyValuePairs[treeIndex]--;
-	}
-	return didRemove;
+	std::scoped_lock<std::mutex> lock(*treeLocks[treeIndex]);
+	return trees[treeIndex]->remove(key);
 }
 
 std::vector<std::future<bool>> ParallelBplustree::remove(const int key) {
@@ -213,14 +191,15 @@ std::vector<std::future<bool>> ParallelBplustree::remove(const int key) {
 }
 
 void ParallelBplustree::readjustTreeNumInsertOp() {
-	for (int i = 0; i < numTrees; i++) {
-		std::scoped_lock<std::mutex> lock(*treeNumKeyValuePairsLocks[i]);
-		treeNumInsertOp[i] = treeNumKeyValuePairs[i];
-	}
+	treeNumInsertOp = std::move(getTreeNumKeys());
 }
 
-const std::vector<int> &ParallelBplustree::getTreeNumKeyValuePairs() {
-	return treeNumKeyValuePairs;
+std::vector<int> ParallelBplustree::getTreeNumKeys() {
+	std::vector<int> result;
+	for (int i = 0; i < numTrees; i++) {
+		result.push_back(trees[i]->getNumKeysStored());
+	}
+	return result;
 }
 
 void ParallelBplustree::waitForWorkToFinish() {
