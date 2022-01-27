@@ -17,7 +17,7 @@ void printHelpInfo() {
 	std::cout << "--threads  " << "Number of threads to use in the thread pool (default std::thread::hardware_concurrency())\n";
 	std::cout << "--trees    " << "Number of base Bplustrees (default std::thread::hardware_concurrency())\n";
 	std::cout << "--bloom    " << "Enable or disable bloom filter usage (default 1)\n";
-	std::cout << "--test     " << "The test to perform (default \"\"), MUST be passed with one of the following: insert, search, delete\n";
+	std::cout << "--test     " << "The test to perform (default \"\"), MUST be passed with one of the following: insert, search, delete, update\n";
 	std::cout << "--op       " << "Number of operations to perform for the test specified (default 10000)\n";
 	std::cout << "--help     " << "Print this help\n";
 }
@@ -134,6 +134,64 @@ void insertTest(const int op, ParallelBplustree *tree) {
 	buildRandomTree(tree, op, distLower, distUpper);
 }
 
+void updateTest(const int op, ParallelBplustree *tree) {
+	std::cout << "---Update performance test---\n";
+	int keyDistLower = 1;
+	int keyDistUpper = 500000;
+	int valuesDistLower = 1;
+	int valuesDistUpper = 5;
+	buildRandomTree(tree, 1000000, keyDistLower, keyDistUpper);
+	std::cout << "Update operations to perform: " << op << "\n";
+	std::random_device rd;
+	std::mt19937_64 gen(rd());
+	std::uniform_int_distribution<> keyDist(keyDistLower, keyDistUpper);
+	std::uniform_int_distribution<> valuesDist(valuesDistLower, valuesDistUpper);
+	std::cout << "Keys to update uniformly drawn from range [" << keyDistLower << ", " << keyDistUpper << "]\n";
+	std::cout << "Updates performed with " <<  valuesDistLower << "-" << valuesDistUpper << " values\n";
+	std::cout << "Updating...\n";
+	std::vector<std::vector<std::future<bool>>> updateFutures;
+	updateFutures.reserve(op);
+	std::chrono::duration<double, std::milli> ms_double(0);
+	std::chrono::steady_clock::time_point t1;
+	std::chrono::steady_clock::time_point t2;
+	for (int i = 0; i < op; i++) {
+		int k = keyDist(gen);
+		std::vector<int> v;
+		for (int j = 0; j < valuesDist(gen); j++) {
+			v.push_back(keyDist(gen));
+		}
+		t1 = std::chrono::high_resolution_clock::now();
+		updateFutures.push_back(std::move(tree->update(k, v)));
+		t2 = std::chrono::high_resolution_clock::now();
+		ms_double += t2 - t1;
+	}
+	for (int i = 0; i < op; i++) {
+		for (int j = 0; j < updateFutures[i].size(); j++) {
+			t1 = std::chrono::high_resolution_clock::now();
+			updateFutures[i][j].wait();
+			t2 = std::chrono::high_resolution_clock::now();
+			ms_double += t2 - t1;
+		}
+	}
+	std::cout << "Calculating statistics...\n";
+	int hits = 0;
+	for (int i = 0; i < op; i++) {
+		if (updateFutures[i].size() == 1) {
+			if (updateFutures[i][0].get()) {
+				hits++;
+			}
+		}
+		else if (updateFutures[i].size() > 1) {
+			hits++;
+		}
+	}
+	int misses = op - hits;
+	std::cout << "Update finished in: " << ms_double.count() << " ms\n";
+	std::cout << "Successful updates: " << hits << "\n";
+	std::cout << "Unsuccessful updates (key not present in tree): " << misses << "\n";
+	std::cout << "Update performance: " << op / (ms_double.count() / 1000) << " ops\n";
+}
+
 int main(int argc, char *argv[]) {
 	std::vector<std::string> validArgv = {"--order", "--threads", "--trees", "--bloom", "--test", "--op", "--help"};
 	// Valid default values for all args except --test
@@ -185,7 +243,7 @@ int main(int argc, char *argv[]) {
 	}
 	ParallelBplustree tree(order, threads, trees, bloom);
 	if (test == "") {
-		std::cout << "Test to run was not specified. Pass --test with one of the following:\ninsert, search\n";
+		std::cout << "Test to run was not specified. Pass --test with one of the following:\ninsert, search, update\n";
 		return 0;
 	}
 	printTreeInfo(order, threads, trees, bloom);
@@ -197,5 +255,8 @@ int main(int argc, char *argv[]) {
 	}
 	else if (test == "delete") {
 		deleteTest(op, &tree);
+	}
+	else if (test == "update") {
+		updateTest(op, &tree);
 	}
 }
