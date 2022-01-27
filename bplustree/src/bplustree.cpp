@@ -331,6 +331,7 @@ int Bplustree::getNumKeysStored() {
 	int sum = 0;
 	while (startLeaf != leaf) {
 		sum += leaf->getKeys()->size();
+		leaf = leaf->getNext();
 	}
 	sum += startLeaf->getKeys()->size();
 	return sum;
