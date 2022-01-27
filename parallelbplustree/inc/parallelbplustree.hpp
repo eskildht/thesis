@@ -33,6 +33,7 @@ class ParallelBplustree {
 		ctpl::thread_pool threadPool;
 		AccessKey *accessKey;
 		void threadInsert(const int key, const int value, const int treeIndex);
+		void threadInsert(const int key, const std::vector<int> &values, const int treeIndex);
 		const std::vector<int> *threadSearch(const int key, const int treeIndex) const;
 		std::vector<int> *threadSearch(const int key, const int treeIndex, AccessKey *accessKey);
 		bool threadUpdate(const int key, const std::vector<int> &values, const int treeIndex);

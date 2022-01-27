@@ -24,6 +24,11 @@ void ParallelBplustree::threadInsert(const int key, const int value, const int t
 	trees[treeIndex]->insert(key, value);
 }
 
+void ParallelBplustree::threadInsert(const int key, const std::vector<int> &values, const int treeIndex) {
+	std::scoped_lock<std::mutex> lock(*treeLocks[treeIndex]);
+	trees[treeIndex]->insert(key, values);
+}
+
 std::future<void> ParallelBplustree::insert(const int key, const int value) {
 	if (useBloomFilters) {
 		for (int i = 0; i < numTrees; i++) {
@@ -128,9 +133,9 @@ std::vector<std::future<bool>> ParallelBplustree::update(const int key, const st
 
 void ParallelBplustree::threadUpdateOrInsert(const int key, const std::vector<int> &values, const int treeIndex) {
 	bool didUpdate;
-	{ 
+	{
 		std::scoped_lock<std::mutex> lock(*treeLocks[treeIndex]);
-		didUpdate = trees[treeIndex]->update(key, values); 
+		didUpdate = trees[treeIndex]->update(key, values);
 	}
 	if (!didUpdate) {
 		std::scoped_lock<std::mutex> lock(*treeLocks[treeIndex]);
