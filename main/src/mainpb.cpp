@@ -1,28 +1,19 @@
-#include "parallelbplustree.hpp"
+#include "mainpb.hpp"
+#include <future>
 #include <random>
 #include <iostream>
 
-void printTreeInfo(const int order, const int threads, const int trees, const bool bloom) {
+MainPB::MainPB(const int order, const int threads, const int trees, const bool bloom) : tree(order, threads, trees, bloom) {}
+
+void MainPB::printTreeInfo() {
 	std::cout << "---ParallelBplustree information--\n";
-	std::cout << "order: " << order << "\n";
-	std::cout << "threads: " << threads << "\n";
-	std::cout << "trees: " << trees << "\n";
-	std::cout << "bloom: " << bloom << "\n";
+	std::cout << "order: " << tree.getOrder() << "\n";
+	std::cout << "threads: " << tree.getNumThreads() << "\n";
+	std::cout << "trees: " << tree.getNumTrees() << "\n";
+	std::cout << "bloom: " << tree.isBloomFilterActivated() << "\n";
 }
 
-void printHelpInfo() {
-	std::cout << "Usage: ./optimized (./debug) [options]\n";
-	std::cout << "Available options:\n";
-	std::cout << "--order    " << "Order of the Bplustrees (default 5)\n";
-	std::cout << "--threads  " << "Number of threads to use in the thread pool (default std::thread::hardware_concurrency())\n";
-	std::cout << "--trees    " << "Number of base Bplustrees (default std::thread::hardware_concurrency())\n";
-	std::cout << "--bloom    " << "Enable or disable bloom filter usage (default 1)\n";
-	std::cout << "--test     " << "The test to perform (default \"\"), MUST be passed with one of the following: insert, search, delete, update\n";
-	std::cout << "--op       " << "Number of operations to perform for the test specified (default 10000)\n";
-	std::cout << "--help     " << "Print this help\n";
-}
-
-void buildRandomTree(ParallelBplustree *tree, const int numInserts, const int distLower, const int distUpper) {
+void MainPB::buildRandomTree(const int numInserts, const int distLower, const int distUpper) {
 	std::random_device rd;
 	std::mt19937_64 gen(rd());
 	std::uniform_int_distribution<> distr(distLower, distUpper);
@@ -34,7 +25,7 @@ void buildRandomTree(ParallelBplustree *tree, const int numInserts, const int di
 	for(int i = 0; i < numInserts; i++) {
 		int k = distr(gen);
 		int v = distr(gen);
-		buildFutures.push_back(std::move(tree->insert(k, v)));
+		buildFutures.push_back(std::move(tree.insert(k, v)));
 	}
 	for(int i = 0; i < numInserts; i++) {
 		buildFutures[i].wait();
@@ -45,11 +36,11 @@ void buildRandomTree(ParallelBplustree *tree, const int numInserts, const int di
 	std::cout << "Build performance: " << numInserts / (ms_double.count() / 1000) << " ops\n";
 }
 
-void searchTest(const int op, ParallelBplustree *tree) {
+void MainPB::searchTest(const int op) {
 	std::cout << "---Search performance test---\n";
 	int distLower = 1;
 	int distUpper = 500000;
-	buildRandomTree(tree, 1000000, distLower, distUpper);
+	buildRandomTree(1000000, distLower, distUpper);
 	std::cout << "Search operations to perform: " << op << "\n";
 	std::random_device rd;
 	std::mt19937_64 gen(rd());
@@ -60,7 +51,7 @@ void searchTest(const int op, ParallelBplustree *tree) {
 	std::chrono::steady_clock::time_point t1 = std::chrono::high_resolution_clock::now();
 	for (int i = 0; i < op; i++) {
 		int k = distr(gen);
-		searchFutures.push_back(std::move(tree->search(k)));
+		searchFutures.push_back(std::move(tree.search(k)));
 	}
 	for (int i = 0; i < op; i++) {
 		for (int j = 0; j < searchFutures[i].size(); j++) {
@@ -86,11 +77,11 @@ void searchTest(const int op, ParallelBplustree *tree) {
 	std::cout << "Search performance: " << op / (ms_double.count() / 1000) << " ops\n";
 }
 
-void deleteTest(const int op, ParallelBplustree *tree) {
+void MainPB::deleteTest(const int op) {
 	std::cout << "---Delete performance test---\n";
 	int distLower = 1;
 	int distUpper = 500000;
-	buildRandomTree(tree, 1000000, distLower, distUpper);
+	buildRandomTree(1000000, distLower, distUpper);
 	std::cout << "Delete operations to perform: " << op << "\n";
 	std::random_device rd;
 	std::mt19937_64 gen(rd());
@@ -101,7 +92,7 @@ void deleteTest(const int op, ParallelBplustree *tree) {
 	std::chrono::steady_clock::time_point t1 = std::chrono::high_resolution_clock::now();
 	for (int i = 0; i < op; i++) {
 		int k = distr(gen);
-		deleteFutures.push_back(std::move(tree->remove(k)));
+		deleteFutures.push_back(std::move(tree.remove(k)));
 	}
 	for (int i = 0; i < op; i++) {
 		for (int j = 0; j < deleteFutures[i].size(); j++) {
@@ -127,20 +118,20 @@ void deleteTest(const int op, ParallelBplustree *tree) {
 	std::cout << "Delete performance: " << op / (ms_double.count() / 1000) << " ops\n";
 }
 
-void insertTest(const int op, ParallelBplustree *tree) {
+void MainPB::insertTest(const int op) {
 	std::cout << "---Insert performance test---\n";
 	int distLower = 1;
 	int distUpper = 500000;
-	buildRandomTree(tree, op, distLower, distUpper);
+	buildRandomTree(op, distLower, distUpper);
 }
 
-void updateTest(const int op, ParallelBplustree *tree) {
+void MainPB::updateTest(const int op) {
 	std::cout << "---Update performance test---\n";
 	int keyDistLower = 1;
 	int keyDistUpper = 500000;
 	int valuesDistLower = 1;
 	int valuesDistUpper = 5;
-	buildRandomTree(tree, 1000000, keyDistLower, keyDistUpper);
+	buildRandomTree(1000000, keyDistLower, keyDistUpper);
 	std::cout << "Update operations to perform: " << op << "\n";
 	std::random_device rd;
 	std::mt19937_64 gen(rd());
@@ -161,7 +152,7 @@ void updateTest(const int op, ParallelBplustree *tree) {
 			v.push_back(keyDist(gen));
 		}
 		t1 = std::chrono::high_resolution_clock::now();
-		updateFutures.push_back(std::move(tree->update(k, v)));
+		updateFutures.push_back(std::move(tree.update(k, v)));
 		t2 = std::chrono::high_resolution_clock::now();
 		ms_double += t2 - t1;
 	}
@@ -190,73 +181,4 @@ void updateTest(const int op, ParallelBplustree *tree) {
 	std::cout << "Successful updates: " << hits << "\n";
 	std::cout << "Unsuccessful updates (key not present in tree): " << misses << "\n";
 	std::cout << "Update performance: " << op / (ms_double.count() / 1000) << " ops\n";
-}
-
-int main(int argc, char *argv[]) {
-	std::vector<std::string> validArgv = {"--order", "--threads", "--trees", "--bloom", "--test", "--op", "--help"};
-	// Valid default values for all args except --test
-	int order = 5;
-	int threads = std::thread::hardware_concurrency();
-	int trees = std::thread::hardware_concurrency();
-	bool bloom = true;
-	std::string test = "";
-	int op = 10000;
-	// If no arguments are passed print --help since at least --test is needed
-	if (argc == 1) {
-		printHelpInfo();
-		return 0;
-	}
-	// Parse argv and set arguments
-	for (int i = 1; i < argc; i++) {
-		std::vector<std::string>::iterator it = std::find(validArgv.begin(), validArgv.end(), argv[i]);
-		if (it != validArgv.end()) {
-			switch (it - validArgv.begin()) {
-				// order
-				case 0:
-					order = std::stoi(argv[i+1]);
-					break;
-				// threads
-				case 1:
-					threads = std::stoi(argv[i+1]);
-					break;
-				// trees
-				case 2:
-					threads = std::stoi(argv[i+1]);
-					break;
-				// bloom
-				case 3:
-					bloom = std::stoi(argv[i+1]) == 0 ? false : true;
-					break;
-				// test
-				case 4:
-					test = argv[i+1];
-					break;
-				// op
-				case 5:
-					op = std::stoi(argv[i+1]);
-					break;
-				case 6:
-					printHelpInfo();
-					return 0;
-			}
-		}
-	}
-	ParallelBplustree tree(order, threads, trees, bloom);
-	if (test == "") {
-		std::cout << "Test to run was not specified. Pass --test with one of the following:\ninsert, search, update\n";
-		return 0;
-	}
-	printTreeInfo(order, threads, trees, bloom);
-	if (test == "insert") {
-		insertTest(op, &tree);
-	}
-	else if (test == "search") {
-		searchTest(op, &tree);
-	}
-	else if (test == "delete") {
-		deleteTest(op, &tree);
-	}
-	else if (test == "update") {
-		updateTest(op, &tree);
-	}
 }
