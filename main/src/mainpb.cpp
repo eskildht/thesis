@@ -10,7 +10,7 @@ void MainPB::printTreeInfo() {
 	std::cout << "order: " << tree.getOrder() << "\n";
 	std::cout << "threads: " << tree.getNumThreads() << "\n";
 	std::cout << "trees: " << tree.getNumTrees() << "\n";
-	std::cout << "bloom: " << tree.isBloomFilterActivated() << "\n";
+	std::cout << "bloom: " << tree.areBloomFiltersUsed() << "\n";
 }
 
 void MainPB::buildRandomTree(const int numInserts, const int distLower, const int distUpper) {

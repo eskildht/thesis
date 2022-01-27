@@ -15,6 +15,10 @@ class ParallelBplustree {
 		void waitForWorkToFinish();
 		void readjustTreeNumInsertOp();
 		const std::vector<int> &getTreeNumKeyValuePairs();
+		int getOrder();
+		int getNumThreads();
+		int getNumTrees();
+		bool areBloomFiltersUsed();
 
 	private:
 		const int order;

@@ -247,3 +247,19 @@ ParallelBplustree::~ParallelBplustree() {
 		}
 	}
 }
+
+int ParallelBplustree::getOrder() {
+	return order;
+}
+
+int ParallelBplustree::getNumThreads() {
+	return numThreads;
+}
+
+int ParallelBplustree::getNumTrees() {
+	return numTrees;
+}
+
+bool ParallelBplustree::areBloomFiltersUsed() {
+	return useBloomFilters;
+}
