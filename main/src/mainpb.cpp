@@ -35,6 +35,14 @@ void MainPB::buildRandomTree(const int numInserts, const int distLower, const in
 	std::cout << "Build performance: " << numInserts / (ms_double.count() / 1000) << " ops\n";
 }
 
+void MainPB::buildTreeWithUniqueKeys(const int numInserts) {
+	std::cout << "Tree to be built by " << numInserts << " inserts\n";
+	std::cout << "Key/value pairs inserted consecutively taking values 1-" << numInserts << "\n";
+	for (int i = 1; i <= numInserts; i++) {
+		tree.insert(i, i);
+	}
+}
+
 void MainPB::searchTest(const int op) {
 	std::cout << "---Search performance test---\n";
 	int distLower = 1;
@@ -180,4 +188,66 @@ void MainPB::updateTest(const int op) {
 	std::cout << "Successful updates: " << hits << "\n";
 	std::cout << "Unsuccessful updates (key not present in tree): " << misses << "\n";
 	std::cout << "Update performance: " << op / (ms_double.count() / 1000) << " ops\n";
+}
+
+void MainPB::updateOrInsertTest(const int op) {
+	std::cout << "---Update or insert performance test---\n";
+	int keyDistLower = 1;
+	int keyDistUpper = 500000;
+	int valuesDistLower = 1;
+	int valuesDistUpper = 5;
+	buildRandomTree(1000000, keyDistLower, keyDistUpper);
+	std::cout << "Update operations to perform: " << op << "\n";
+	std::random_device rd;
+	std::mt19937_64 gen(rd());
+	std::uniform_int_distribution<> keyDist(keyDistLower, keyDistUpper);
+	std::uniform_int_distribution<> valuesDist(valuesDistLower, valuesDistUpper);
+	std::cout << "Keys to update uniformly drawn from range [" << keyDistLower << ", " << keyDistUpper << "]\n";
+	std::cout << "Updates performed with " <<  valuesDistLower << "-" << valuesDistUpper << " values\n";
+	std::vector<int> beforeTreeNumKeys = tree.getTreeNumKeys();
+	std::cout << "Updating...\n";
+	std::vector<std::vector<std::future<void>>> updateFutures;
+	updateFutures.reserve(op);
+	std::chrono::duration<double, std::milli> ms_double(0);
+	std::chrono::steady_clock::time_point t1;
+	std::chrono::steady_clock::time_point t2;
+	for (int i = 0; i < op; i++) {
+		int k = keyDist(gen);
+		std::vector<int> v;
+		for (int j = 0; j < valuesDist(gen); j++) {
+			v.push_back(keyDist(gen));
+		}
+		t1 = std::chrono::high_resolution_clock::now();
+		updateFutures.push_back(std::move(tree.updateOrInsert(k, v)));
+		t2 = std::chrono::high_resolution_clock::now();
+		ms_double += t2 - t1;
+	}
+	for (int i = 0; i < op; i++) {
+		for (int j = 0; j < updateFutures[i].size(); j++) {
+			t1 = std::chrono::high_resolution_clock::now();
+			updateFutures[i][j].wait();
+			t2 = std::chrono::high_resolution_clock::now();
+			ms_double += t2 - t1;
+		}
+	}
+	std::cout << "Calculating statistics...\n";
+	std::cout << "Number of unique keys in each tree before update:\n[";
+	for (int i = 0; i < beforeTreeNumKeys.size() - 1; i++) {
+		std::cout << beforeTreeNumKeys[i] << ", ";
+	}
+	std::cout << beforeTreeNumKeys[beforeTreeNumKeys.size() - 1] << "]\n";
+	int misses = 0;
+	std::cout << "Number of unique keys in each tree after update:\n[";
+	std::vector<int> afterTreeNumKeys = tree.getTreeNumKeys();
+	for (int i = 0; i < afterTreeNumKeys.size() - 1; i++) {
+		std::cout << afterTreeNumKeys[i] << ", ";
+		misses += afterTreeNumKeys[i] - beforeTreeNumKeys[i];
+	}
+	misses += afterTreeNumKeys[afterTreeNumKeys.size() - 1] - beforeTreeNumKeys[beforeTreeNumKeys.size() - 1];
+	std::cout << afterTreeNumKeys[afterTreeNumKeys.size() - 1] << "]\n";
+	int hits = op - misses;
+	std::cout << "Update or insert finished in: " << ms_double.count() << " ms\n";
+	std::cout << "Successful updates: " << hits << "\n";
+	std::cout << "Unsuccessful updates leading to inserts: " << misses << "\n";
+	std::cout << "Update or insert performance: " << op / (ms_double.count() / 1000) << " ops\n";
 }
