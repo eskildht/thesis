@@ -16,4 +16,8 @@ class Program {
 	private:
 		ParallelBplustree *pbtree;
 		Bplustree *btree;
+		void printBplustreeInfo();
+		void printParallelBplustreeInfo();
+		void buildRandomBplustree(const int numInserts, const int distLower, const int distUpper);
+		void buildRandomParallelBplustree(const int numInserts, const int distLower, const int distUpper);
 };

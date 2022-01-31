@@ -15,21 +15,29 @@ Program::~Program() {
 	}
 }
 
-void Program::printTreeInfo() {
-	if (btree) {
-		std::cout << "---Bplustree information--\n";
-		std::cout << "order: " << btree->getOrder() << "\n";
-	}
-	else {
-		std::cout << "---ParallelBplustree information--\n";
-		std::cout << "order: " << pbtree->getOrder() << "\n";
-		std::cout << "threads: " << pbtree->getNumThreads() << "\n";
-		std::cout << "trees: " << pbtree->getNumTrees() << "\n";
-		std::cout << "bloom: " << pbtree->areBloomFiltersUsed() << "\n";
-	}
+void Program::printBplustreeInfo() {
+	std::cout << "---Bplustree information--\n";
+	std::cout << "order: " << btree->getOrder() << "\n";
 }
 
-void Program::buildRandomTree(const int numInserts, const int distLower, const int distUpper) {
+void Program::printParallelBplustreeInfo() {
+	std::cout << "---ParallelBplustree information--\n";
+	std::cout << "order: " << pbtree->getOrder() << "\n";
+	std::cout << "threads: " << pbtree->getNumThreads() << "\n";
+	std::cout << "trees: " << pbtree->getNumTrees() << "\n";
+	std::cout << "bloom: " << pbtree->areBloomFiltersUsed() << "\n";
+}
+
+void Program::printTreeInfo() {
+	btree ? printBplustreeInfo() : printParallelBplustreeInfo();
+}
+
+
+void Program::buildRandomBplustree(const int numInserts, const int distLower, const int distUpper) {
+
+};
+
+void Program::buildRandomParallelBplustree(const int numInserts, const int distLower, const int distUpper) {
 	std::random_device rd;
 	std::mt19937_64 gen(rd());
 	std::uniform_int_distribution<> distr(distLower, distUpper);
@@ -50,6 +58,10 @@ void Program::buildRandomTree(const int numInserts, const int distLower, const i
 	std::chrono::duration<double, std::milli> ms_double = t2 - t1;
 	std::cout << "Build finished in: " << ms_double.count() << " ms\n";
 	std::cout << "Build performance: " << numInserts / (ms_double.count() / 1000) << " ops\n";
+};
+
+void Program::buildRandomTree(const int numInserts, const int distLower, const int distUpper) {
+	btree ? buildRandomBplustree(numInserts, distLower, distUpper) : buildRandomParallelBplustree(numInserts, distLower, distUpper);
 }
 
 void Program::buildTreeWithUniqueKeys(const int numInserts) {
