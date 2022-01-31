@@ -31,34 +31,51 @@ void Program::printTreeInfo() {
 	btree ? printBplustreeInfo() : printParallelBplustreeInfo();
 }
 
+void Program::insertTest(const int op, const bool runAsOp) {
+	std::cout << "---Insert performance test---\n";
+	runAsOp ? buildRandomTree(op, true) : buildRandomTree(op, false);
+}
 
-void Program::buildRandomBplustree(const int numInserts, const int distrLow, const int distrHigh) {
+void Program::buildRandomTree(const int numInserts, const bool runAsOp) {
+	std::cout << "Tree to be built by " << numInserts << " inserts\n";
+	if (runAsOp) {
+		std::cout << "Key/value pairs uniformly drawn from range [" << opDistrLow << ", " << opDistrHigh << "]\n";
+	}
+	else {
+		std::cout << "Key/value pairs uniformly drawn from range [" << buildDistrLow << ", " << buildDistrHigh << "]\n";
+	}
+	std::uniform_int_distribution<> &distr = runAsOp ? opDistr : buildDistr;
+	std::cout << "Building...\n";
+	std::chrono::duration<double, std::ratio<1, 1000>>::rep ms = btree ? buildRandomBplustree(numInserts, distr) : buildRandomParallelBplustree(numInserts, distr);
+	std::cout << "Build finished in: " << ms << " ms\n";
+	std::cout << "Build performance: " << numInserts / (ms / 1000) << " ops\n";
+}
 
+std::chrono::duration<double, std::ratio<1, 1000>>::rep Program::buildRandomBplustree(const int numInserts, std::uniform_int_distribution<> &distr) {
+	std::chrono::steady_clock::time_point t1 = std::chrono::high_resolution_clock::now();
+	for(int i = 0; i < numInserts; i++) {
+		int k = distr(gen);
+		int v = distr(gen);
+		btree->insert(k, v);
+	}
+	std::chrono::steady_clock::time_point t2 = std::chrono::high_resolution_clock::now();
+	return (t2 - t1).count();
 };
 
-void Program::buildRandomParallelBplustree(const int numInserts, const int distrLow, const int distrHigh) {
-	std::cout << "Tree to be built by " << numInserts << " inserts\n";
-	std::cout << "Key/value pairs uniformly drawn from range [" << distrLow << ", " << distrHigh << "]\n";
-	std::cout << "Building...\n";
+std::chrono::duration<double, std::ratio<1, 1000>>::rep Program::buildRandomParallelBplustree(const int numInserts, std::uniform_int_distribution<> &distr) {
 	std::vector<std::future<void>> buildFutures;
 	std::chrono::steady_clock::time_point t1 = std::chrono::high_resolution_clock::now();
 	for(int i = 0; i < numInserts; i++) {
-		int k = opDistr(gen);
-		int v = opDistr(gen);
+		int k = distr(gen);
+		int v = distr(gen);
 		buildFutures.push_back(std::move(pbtree->insert(k, v)));
 	}
 	for(int i = 0; i < numInserts; i++) {
 		buildFutures[i].wait();
 	}
 	std::chrono::steady_clock::time_point t2 = std::chrono::high_resolution_clock::now();
-	std::chrono::duration<double, std::milli> ms_double = t2 - t1;
-	std::cout << "Build finished in: " << ms_double.count() << " ms\n";
-	std::cout << "Build performance: " << numInserts / (ms_double.count() / 1000) << " ops\n";
+	return (t2 - t1).count();
 };
-
-void Program::buildRandomTree(const int numInserts, const int distrLow, const int distrHigh) {
-	btree ? buildRandomBplustree(numInserts, distrLow, distrHigh) : buildRandomParallelBplustree(numInserts, distrLow, distrHigh);
-}
 
 void Program::buildTreeWithUniqueKeys(const int numInserts) {
 	std::cout << "Tree to be built by " << numInserts << " inserts\n";
@@ -147,12 +164,6 @@ void Program::deleteTest(const int op) {
 	std::cout << "Delete performance: " << op / (ms_double.count() / 1000) << " ops\n";
 }
 
-void Program::insertTest(const int op) {
-	std::cout << "---Insert performance test---\n";
-	int distrLow = 1;
-	int distrHigh = 500000;
-	buildRandomTree(op, distrLow, distrHigh);
-}
 
 void Program::updateTest(const int op) {
 	std::cout << "---Update performance test---\n";
