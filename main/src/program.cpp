@@ -1,10 +1,10 @@
-#include "mainpb.hpp"
+#include "program.hpp"
 #include <random>
 #include <iostream>
 
-MainPB::MainPB(const int order, const int threads, const int trees, const bool bloom) : tree(order, threads, trees, bloom) {}
+Program::Program(const int order, const int threads, const int trees, const bool bloom) : tree(order, threads, trees, bloom) {}
 
-void MainPB::printTreeInfo() {
+void Program::printTreeInfo() {
 	std::cout << "---ParallelBplustree information--\n";
 	std::cout << "order: " << tree.getOrder() << "\n";
 	std::cout << "threads: " << tree.getNumThreads() << "\n";
@@ -12,7 +12,7 @@ void MainPB::printTreeInfo() {
 	std::cout << "bloom: " << tree.areBloomFiltersUsed() << "\n";
 }
 
-void MainPB::buildRandomTree(const int numInserts, const int distLower, const int distUpper) {
+void Program::buildRandomTree(const int numInserts, const int distLower, const int distUpper) {
 	std::random_device rd;
 	std::mt19937_64 gen(rd());
 	std::uniform_int_distribution<> distr(distLower, distUpper);
@@ -35,7 +35,7 @@ void MainPB::buildRandomTree(const int numInserts, const int distLower, const in
 	std::cout << "Build performance: " << numInserts / (ms_double.count() / 1000) << " ops\n";
 }
 
-void MainPB::buildTreeWithUniqueKeys(const int numInserts) {
+void Program::buildTreeWithUniqueKeys(const int numInserts) {
 	std::cout << "Tree to be built by " << numInserts << " inserts\n";
 	std::cout << "Key/value pairs inserted consecutively taking values 1-" << numInserts << "\n";
 	for (int i = 1; i <= numInserts; i++) {
@@ -43,7 +43,7 @@ void MainPB::buildTreeWithUniqueKeys(const int numInserts) {
 	}
 }
 
-void MainPB::searchTest(const int op) {
+void Program::searchTest(const int op) {
 	std::cout << "---Search performance test---\n";
 	int distLower = 1;
 	int distUpper = 500000;
@@ -84,7 +84,7 @@ void MainPB::searchTest(const int op) {
 	std::cout << "Search performance: " << op / (ms_double.count() / 1000) << " ops\n";
 }
 
-void MainPB::deleteTest(const int op) {
+void Program::deleteTest(const int op) {
 	std::cout << "---Delete performance test---\n";
 	int distLower = 1;
 	int distUpper = 500000;
@@ -125,14 +125,14 @@ void MainPB::deleteTest(const int op) {
 	std::cout << "Delete performance: " << op / (ms_double.count() / 1000) << " ops\n";
 }
 
-void MainPB::insertTest(const int op) {
+void Program::insertTest(const int op) {
 	std::cout << "---Insert performance test---\n";
 	int distLower = 1;
 	int distUpper = 500000;
 	buildRandomTree(op, distLower, distUpper);
 }
 
-void MainPB::updateTest(const int op) {
+void Program::updateTest(const int op) {
 	std::cout << "---Update performance test---\n";
 	int keyDistLower = 1;
 	int keyDistUpper = 500000;
@@ -190,7 +190,7 @@ void MainPB::updateTest(const int op) {
 	std::cout << "Update performance: " << op / (ms_double.count() / 1000) << " ops\n";
 }
 
-void MainPB::updateOrInsertTest(const int op) {
+void Program::updateOrInsertTest(const int op) {
 	std::cout << "---Update or insert performance test---\n";
 	int keyDistLower = 1;
 	int keyDistUpper = 500000;

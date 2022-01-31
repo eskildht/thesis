@@ -1,8 +1,8 @@
 #include "parallelbplustree.hpp"
 
-class MainPB {
+class Program {
 	public:
-		MainPB(const int order, const int threads, const int trees, const bool bloom);
+		Program(const int order, const int threads, const int trees, const bool bloom);
 		void printTreeInfo();
 		void buildRandomTree(const int numInserts, const int distLower, const int distUpper);
 		void buildTreeWithUniqueKeys(const int numInserts);

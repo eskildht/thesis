@@ -2,6 +2,7 @@
 #include <string>
 #include <vector>
 #include <map>
+#include "tree.hpp"
 
 class Node;
 class InternalNode;
@@ -14,7 +15,7 @@ class AccessKey {
 		AccessKey() {};
 };
 
-class Bplustree {
+class Bplustree : public Tree {
 	public:
 		Bplustree(const int order);
 		~Bplustree();

@@ -1,4 +1,4 @@
-#include "mainpb.hpp"
+#include "program.hpp"
 #include <iostream>
 
 void printHelpInfo() {
@@ -66,7 +66,7 @@ int main(int argc, char *argv[]) {
 		std::cout << "Test to run was not specified. Pass --test with one of the following:\ninsert, search, update, updateorinsert\n";
 		return 0;
 	}
-	MainPB mainPB(order, threads, trees, bloom);
+	Program mainPB(order, threads, trees, bloom);
 	mainPB.printTreeInfo();
 	if (test == "insert") {
 		mainPB.insertTest(op);
