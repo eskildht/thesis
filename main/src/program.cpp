@@ -1,9 +1,9 @@
 #include "program.hpp"
 #include <iostream>
 
-Program::Program(const int order, const int threads, const int trees, const bool bloom, const int distrLow, const int distrHigh) : btree(nullptr), pbtree(new ParallelBplustree(order, threads, trees, bloom)), gen(std::random_device{}()), distr(distrLow, distrHigh){}
+Program::Program(const int order, const int threads, const int trees, const bool bloom, const int opDistrLow, const int opDistrHigh, const int buildDistrLow, const int buildDistrHigh) : btree(nullptr), pbtree(new ParallelBplustree(order, threads, trees, bloom)), gen(std::random_device{}()), opDistrLow(opDistrLow), opDistrHigh(opDistrHigh), opDistr(opDistrLow, opDistrHigh), buildDistrLow(buildDistrLow), buildDistrHigh(buildDistrHigh), buildDistr(buildDistrLow, buildDistrHigh) {}
 
-Program::Program(const int order, const int distrLow, const int distrHigh) : btree(new Bplustree(order)), pbtree(nullptr), gen(std::random_device{}()), distr(distrLow, distrHigh) {}
+Program::Program(const int order, const int opDistrLow, const int opDistrHigh, const int buildDistrLow, const int buildDistrHigh) : btree(new Bplustree(order)), pbtree(nullptr), gen(std::random_device{}()), opDistrLow(opDistrLow), opDistrHigh(opDistrHigh), opDistr(opDistrLow, opDistrHigh), buildDistrLow(buildDistrLow), buildDistrHigh(buildDistrHigh), buildDistr(buildDistrLow, buildDistrHigh) {}
 
 Program::~Program() {
 	if (btree) {
@@ -32,19 +32,19 @@ void Program::printTreeInfo() {
 }
 
 
-void Program::buildRandomBplustree(const int numInserts, const int distLower, const int distUpper) {
+void Program::buildRandomBplustree(const int numInserts, const int distrLow, const int distrHigh) {
 
 };
 
-void Program::buildRandomParallelBplustree(const int numInserts, const int distLower, const int distUpper) {
+void Program::buildRandomParallelBplustree(const int numInserts, const int distrLow, const int distrHigh) {
 	std::cout << "Tree to be built by " << numInserts << " inserts\n";
-	std::cout << "Key/value pairs uniformly drawn from range [" << distLower << ", " << distUpper << "]\n";
+	std::cout << "Key/value pairs uniformly drawn from range [" << distrLow << ", " << distrHigh << "]\n";
 	std::cout << "Building...\n";
 	std::vector<std::future<void>> buildFutures;
 	std::chrono::steady_clock::time_point t1 = std::chrono::high_resolution_clock::now();
 	for(int i = 0; i < numInserts; i++) {
-		int k = distr(gen);
-		int v = distr(gen);
+		int k = opDistr(gen);
+		int v = opDistr(gen);
 		buildFutures.push_back(std::move(pbtree->insert(k, v)));
 	}
 	for(int i = 0; i < numInserts; i++) {
@@ -56,8 +56,8 @@ void Program::buildRandomParallelBplustree(const int numInserts, const int distL
 	std::cout << "Build performance: " << numInserts / (ms_double.count() / 1000) << " ops\n";
 };
 
-void Program::buildRandomTree(const int numInserts, const int distLower, const int distUpper) {
-	btree ? buildRandomBplustree(numInserts, distLower, distUpper) : buildRandomParallelBplustree(numInserts, distLower, distUpper);
+void Program::buildRandomTree(const int numInserts, const int distrLow, const int distrHigh) {
+	btree ? buildRandomBplustree(numInserts, distrLow, distrHigh) : buildRandomParallelBplustree(numInserts, distrLow, distrHigh);
 }
 
 void Program::buildTreeWithUniqueKeys(const int numInserts) {
@@ -70,19 +70,16 @@ void Program::buildTreeWithUniqueKeys(const int numInserts) {
 
 void Program::searchTest(const int op) {
 	std::cout << "---Search performance test---\n";
-	int distLower = 1;
-	int distUpper = 500000;
-	buildRandomTree(1000000, distLower, distUpper);
+	int distrLow = 1;
+	int distrHigh = 500000;
+	buildRandomTree(1000000, distrLow, distrHigh);
 	std::cout << "Search operations to perform: " << op << "\n";
-	std::random_device rd;
-	std::mt19937_64 gen(rd());
-	std::uniform_int_distribution<> distr(distLower, distUpper);
-	std::cout << "Keys to search for uniformly drawn from range [" << distLower << ", " << distUpper << "]\n";
+	std::cout << "Keys to search for uniformly drawn from range [" << distrLow << ", " << distrHigh << "]\n";
 	std::cout << "Searching...\n";
 	std::vector<std::vector<std::future<const std::vector<int> *>>> searchFutures;
 	std::chrono::steady_clock::time_point t1 = std::chrono::high_resolution_clock::now();
 	for (int i = 0; i < op; i++) {
-		int k = distr(gen);
+		int k = opDistr(gen);
 		searchFutures.push_back(std::move(pbtree->search(k)));
 	}
 	for (int i = 0; i < op; i++) {
@@ -111,14 +108,14 @@ void Program::searchTest(const int op) {
 
 void Program::deleteTest(const int op) {
 	std::cout << "---Delete performance test---\n";
-	int distLower = 1;
-	int distUpper = 500000;
-	buildRandomTree(1000000, distLower, distUpper);
+	int distrLow = 1;
+	int distrHigh = 500000;
+	buildRandomTree(1000000, distrLow, distrHigh);
 	std::cout << "Delete operations to perform: " << op << "\n";
 	std::random_device rd;
 	std::mt19937_64 gen(rd());
-	std::uniform_int_distribution<> distr(distLower, distUpper);
-	std::cout << "Keys to search for uniformly drawn from range [" << distLower << ", " << distUpper << "]\n";
+	std::uniform_int_distribution<> distr(distrLow, distrHigh);
+	std::cout << "Keys to search for uniformly drawn from range [" << distrLow << ", " << distrHigh << "]\n";
 	std::cout << "Deleting...\n";
 	std::vector<std::vector<std::future<bool>>> deleteFutures;
 	std::chrono::steady_clock::time_point t1 = std::chrono::high_resolution_clock::now();
@@ -152,25 +149,25 @@ void Program::deleteTest(const int op) {
 
 void Program::insertTest(const int op) {
 	std::cout << "---Insert performance test---\n";
-	int distLower = 1;
-	int distUpper = 500000;
-	buildRandomTree(op, distLower, distUpper);
+	int distrLow = 1;
+	int distrHigh = 500000;
+	buildRandomTree(op, distrLow, distrHigh);
 }
 
 void Program::updateTest(const int op) {
 	std::cout << "---Update performance test---\n";
-	int keyDistLower = 1;
-	int keyDistUpper = 500000;
-	int valuesDistLower = 1;
-	int valuesDistUpper = 5;
-	buildRandomTree(1000000, keyDistLower, keyDistUpper);
+	int keyDistrLow = 1;
+	int keyDistrHigh = 500000;
+	int valuesDistrLow = 1;
+	int valuesDistrHigh = 5;
+	buildRandomTree(1000000, keyDistrLow, keyDistrHigh);
 	std::cout << "Update operations to perform: " << op << "\n";
 	std::random_device rd;
 	std::mt19937_64 gen(rd());
-	std::uniform_int_distribution<> keyDist(keyDistLower, keyDistUpper);
-	std::uniform_int_distribution<> valuesDist(valuesDistLower, valuesDistUpper);
-	std::cout << "Keys to update uniformly drawn from range [" << keyDistLower << ", " << keyDistUpper << "]\n";
-	std::cout << "Updates performed with " <<  valuesDistLower << "-" << valuesDistUpper << " values\n";
+	std::uniform_int_distribution<> keyDist(keyDistrLow, keyDistrHigh);
+	std::uniform_int_distribution<> valuesDist(valuesDistrLow, valuesDistrHigh);
+	std::cout << "Keys to update uniformly drawn from range [" << keyDistrLow << ", " << keyDistrHigh << "]\n";
+	std::cout << "Updates performed with " <<  valuesDistrLow << "-" << valuesDistrHigh << " values\n";
 	std::cout << "Updating...\n";
 	std::vector<std::vector<std::future<bool>>> updateFutures;
 	updateFutures.reserve(op);
@@ -217,18 +214,18 @@ void Program::updateTest(const int op) {
 
 void Program::updateOrInsertTest(const int op) {
 	std::cout << "---Update or insert performance test---\n";
-	int keyDistLower = 1;
-	int keyDistUpper = 500000;
-	int valuesDistLower = 1;
-	int valuesDistUpper = 5;
-	buildRandomTree(1000000, keyDistLower, keyDistUpper);
+	int keyDistrLow = 1;
+	int keyDistrHigh = 500000;
+	int valuesDistrLow = 1;
+	int valuesDistrHigh = 5;
+	buildRandomTree(1000000, keyDistrLow, keyDistrHigh);
 	std::cout << "Update operations to perform: " << op << "\n";
 	std::random_device rd;
 	std::mt19937_64 gen(rd());
-	std::uniform_int_distribution<> keyDist(keyDistLower, keyDistUpper);
-	std::uniform_int_distribution<> valuesDist(valuesDistLower, valuesDistUpper);
-	std::cout << "Keys to update uniformly drawn from range [" << keyDistLower << ", " << keyDistUpper << "]\n";
-	std::cout << "Updates performed with " <<  valuesDistLower << "-" << valuesDistUpper << " values\n";
+	std::uniform_int_distribution<> keyDist(keyDistrLow, keyDistrHigh);
+	std::uniform_int_distribution<> valuesDist(valuesDistrLow, valuesDistrHigh);
+	std::cout << "Keys to update uniformly drawn from range [" << keyDistrLow << ", " << keyDistrHigh << "]\n";
+	std::cout << "Updates performed with " <<  valuesDistrLow << "-" << valuesDistrHigh << " values\n";
 	std::cout << "Retrieving number of keys in each sub Bplustree for later use...\n";
 	std::vector<int> beforeTreeNumKeys = pbtree->getTreeNumKeys();
 	std::cout << "Updating...\n";
