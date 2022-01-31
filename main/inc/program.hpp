@@ -1,9 +1,10 @@
 #include "parallelbplustree.hpp"
+#include <random>
 
 class Program {
 	public:
-		Program(const int order, const int threads, const int trees, const bool bloom);
-		Program(const int order);
+		Program(const int order, const int threads, const int trees, const bool bloom, const int distrLow, const int distrHigh);
+		Program(const int order, const int distrLow, const int distrHigh);
 		void printTreeInfo();
 		void buildRandomTree(const int numInserts, const int distLower, const int distUpper);
 		void buildTreeWithUniqueKeys(const int numInserts);
@@ -16,6 +17,8 @@ class Program {
 	private:
 		ParallelBplustree *pbtree;
 		Bplustree *btree;
+		std::mt19937_64 gen;
+		std::uniform_int_distribution<> distr;
 		void printBplustreeInfo();
 		void printParallelBplustreeInfo();
 		void buildRandomBplustree(const int numInserts, const int distLower, const int distUpper);

@@ -1,10 +1,9 @@
 #include "program.hpp"
-#include <random>
 #include <iostream>
 
-Program::Program(const int order, const int threads, const int trees, const bool bloom) : btree(nullptr), pbtree(new ParallelBplustree(order, threads, trees, bloom)) {}
+Program::Program(const int order, const int threads, const int trees, const bool bloom, const int distrLow, const int distrHigh) : btree(nullptr), pbtree(new ParallelBplustree(order, threads, trees, bloom)), gen(std::random_device{}()), distr(distrLow, distrHigh){}
 
-Program::Program(const int order) : btree(new Bplustree(order)), pbtree(nullptr) {}
+Program::Program(const int order, const int distrLow, const int distrHigh) : btree(new Bplustree(order)), pbtree(nullptr), gen(std::random_device{}()), distr(distrLow, distrHigh) {}
 
 Program::~Program() {
 	if (btree) {
@@ -38,9 +37,6 @@ void Program::buildRandomBplustree(const int numInserts, const int distLower, co
 };
 
 void Program::buildRandomParallelBplustree(const int numInserts, const int distLower, const int distUpper) {
-	std::random_device rd;
-	std::mt19937_64 gen(rd());
-	std::uniform_int_distribution<> distr(distLower, distUpper);
 	std::cout << "Tree to be built by " << numInserts << " inserts\n";
 	std::cout << "Key/value pairs uniformly drawn from range [" << distLower << ", " << distUpper << "]\n";
 	std::cout << "Building...\n";
