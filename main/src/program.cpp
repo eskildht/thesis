@@ -14,6 +14,10 @@ Program::~Program() {
 	}
 }
 
+void Program::printTreeInfo() {
+	btree ? printBplustreeInfo() : printParallelBplustreeInfo();
+}
+
 void Program::printBplustreeInfo() {
 	std::cout << "---Bplustree information--\n";
 	std::cout << "order: " << btree->getOrder() << "\n";
@@ -25,10 +29,6 @@ void Program::printParallelBplustreeInfo() {
 	std::cout << "threads: " << pbtree->getNumThreads() << "\n";
 	std::cout << "trees: " << pbtree->getNumTrees() << "\n";
 	std::cout << "bloom: " << pbtree->areBloomFiltersUsed() << "\n";
-}
-
-void Program::printTreeInfo() {
-	btree ? printBplustreeInfo() : printParallelBplustreeInfo();
 }
 
 void Program::insertTest(const int op, const bool runAsOp) {
