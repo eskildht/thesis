@@ -2,7 +2,7 @@
 #include "ctpl_stl.hpp"
 #include "bloom_filter.hpp"
 
-class ParallelBplustree : public Tree {
+class ParallelBplustree {
 	public:
 		ParallelBplustree(const int order, const int numThreads, const int numTrees, const bool useBloomFilters);
 		~ParallelBplustree();

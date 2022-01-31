@@ -17,7 +17,6 @@ ParallelBplustree::ParallelBplustree(const int order, const int numThreads, cons
 			treeFilters.push_back(new bloom_filter(parameters));
 		}
 	}
-	bplustree = false;
 }
 
 void ParallelBplustree::threadInsert(const int key, const int value, const int treeIndex) {

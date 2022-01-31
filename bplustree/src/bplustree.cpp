@@ -6,7 +6,6 @@
 
 Bplustree::Bplustree(const int order) : order(order) {
 	root = new LeafNode();
-	bplustree = true;
 }
 
 int Bplustree::getOrder() {

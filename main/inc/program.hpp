@@ -3,6 +3,7 @@
 class Program {
 	public:
 		Program(const int order, const int threads, const int trees, const bool bloom);
+		Program(const int order);
 		void printTreeInfo();
 		void buildRandomTree(const int numInserts, const int distLower, const int distUpper);
 		void buildTreeWithUniqueKeys(const int numInserts);
@@ -11,6 +12,8 @@ class Program {
 		void insertTest(const int op);
 		void updateTest(const int op);
 		void updateOrInsertTest(const int op);
+		~Program();
 	private:
-		ParallelBplustree tree;
+		ParallelBplustree *pbtree;
+		Bplustree *btree;
 };

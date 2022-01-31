@@ -2,15 +2,15 @@ all: debug optimized
 
 
 # DEBUG
-debug: main_debug.o program_debug.o node_debug.o internalnode_debug.o leafnode_debug.o tree_debug.o bplustree_debug.o parallelbplustree_debug.o
-	g++ main_debug.o program_debug.o node_debug.o internalnode_debug.o leafnode_debug.o tree_debug.o bplustree_debug.o parallelbplustree_debug.o -o debug -std=c++20
+debug: main_debug.o program_debug.o node_debug.o internalnode_debug.o leafnode_debug.o bplustree_debug.o parallelbplustree_debug.o
+	g++ main_debug.o program_debug.o node_debug.o internalnode_debug.o leafnode_debug.o bplustree_debug.o parallelbplustree_debug.o -o debug -std=c++20
 	@echo "Debug build compiled and linked"
 
 main_debug.o: ../main/src/main.cpp
-	g++ -o main_debug.o -c ../main/src/main.cpp -I ../main/inc -I ../tree/inc -I ../bplustree/inc -I ../parallelbplustree/inc -std=c++20 -g
+	g++ -o main_debug.o -c ../main/src/main.cpp -I ../main/inc -I ../bplustree/inc -I ../parallelbplustree/inc -std=c++20 -g
 
 program_debug.o: ../main/src/program.cpp ../main/inc/program.hpp
-	g++ -o program_debug.o -c ../main/src/program.cpp -I ../main/inc -I ../tree/inc -I ../bplustree/inc -I ../parallelbplustree/inc -std=c++20 -g
+	g++ -o program_debug.o -c ../main/src/program.cpp -I ../main/inc -I ../bplustree/inc -I ../parallelbplustree/inc -std=c++20 -g
 
 node_debug.o: ../bplustree/src/node.cpp ../bplustree/inc/node.hpp
 	g++ -o node_debug.o -c ../bplustree/src/node.cpp -I ../bplustree/inc -std=c++20 -g
@@ -21,14 +21,12 @@ internalnode_debug.o: ../bplustree/src/internalnode.cpp ../bplustree/inc/interna
 leafnode_debug.o: ../bplustree/src/leafnode.cpp ../bplustree/inc/leafnode.hpp
 	g++ -o leafnode_debug.o -c ../bplustree/src/leafnode.cpp -I ../bplustree/inc -std=c++20 -g
 
-tree_debug.o: ../tree/src/tree.cpp ../tree/inc/tree.hpp
-	g++ -o tree_debug.o -c ../tree/src/tree.cpp -I ../tree/inc -std=c++20 -g
 
 bplustree_debug.o: ../bplustree/src/bplustree.cpp ../bplustree/inc/bplustree.hpp
-	g++ -o bplustree_debug.o -c ../bplustree/src/bplustree.cpp -I ../tree/inc -I ../bplustree/inc -std=c++20 -g
+	g++ -o bplustree_debug.o -c ../bplustree/src/bplustree.cpp -I ../bplustree/inc -std=c++20 -g
 
 parallelbplustree_debug.o: ../parallelbplustree/src/parallelbplustree.cpp ../parallelbplustree/inc/parallelbplustree.hpp
-	g++ -o parallelbplustree_debug.o -c ../parallelbplustree/src/parallelbplustree.cpp -I ../tree/inc -I ../bplustree/inc -I ../parallelbplustree/inc -std=c++20 -g
+	g++ -o parallelbplustree_debug.o -c ../parallelbplustree/src/parallelbplustree.cpp -I ../bplustree/inc -I ../parallelbplustree/inc -std=c++20 -g
 
 
 # OPTIMIZED
@@ -37,10 +35,10 @@ optimized: main_optimized.o program_optimized.o node_optimized.o internalnode_op
 	@echo "Optimized build compiled and linked"
 
 main_optimized.o: ../main/src/main.cpp
-	g++ -o main_optimized.o -c ../main/src/main.cpp -I ../main/inc -I ../tree/inc -I ../bplustree/inc -I ../parallelbplustree/inc -std=c++20 -O2
+	g++ -o main_optimized.o -c ../main/src/main.cpp -I ../main/inc -I ../bplustree/inc -I ../parallelbplustree/inc -std=c++20 -O2
 
 program_optimized.o: ../main/src/program.cpp ../main/inc/program.hpp
-	g++ -o program_optimized.o -c ../main/src/program.cpp -I ../main/inc -I ../tree/inc -I ../bplustree/inc -I ../parallelbplustree/inc -std=c++20 -O2
+	g++ -o program_optimized.o -c ../main/src/program.cpp -I ../main/inc -I ../bplustree/inc -I ../parallelbplustree/inc -std=c++20 -O2
 
 node_optimized.o: ../bplustree/src/node.cpp ../bplustree/inc/node.hpp
 	g++ -o node_optimized.o -c ../bplustree/src/node.cpp -I ../bplustree/inc -std=c++20 -O2
@@ -51,14 +49,11 @@ internalnode_optimized.o: ../bplustree/src/internalnode.cpp ../bplustree/inc/int
 leafnode_optimized.o: ../bplustree/src/leafnode.cpp ../bplustree/inc/leafnode.hpp
 	g++ -o leafnode_optimized.o -c ../bplustree/src/leafnode.cpp -I ../bplustree/inc -std=c++20 -O2
 
-tree_optimized.o: ../tree/src/tree.cpp ../tree/inc/tree.hpp
-	g++ -o tree_optimized.o -c ../tree/src/tree.cpp -I ../tree/inc -std=c++20 -O2
-
 bplustree_optimized.o: ../bplustree/src/bplustree.cpp ../bplustree/inc/bplustree.hpp
-	g++ -o bplustree_optimized.o -c ../bplustree/src/bplustree.cpp -I ../tree/inc -I ../bplustree/inc -std=c++20 -O2
+	g++ -o bplustree_optimized.o -c ../bplustree/src/bplustree.cpp -I ../bplustree/inc -std=c++20 -O2
 
 parallelbplustree_optimized.o: ../parallelbplustree/src/parallelbplustree.cpp ../parallelbplustree/inc/parallelbplustree.hpp
-	g++ -o parallelbplustree_optimized.o -c ../parallelbplustree/src/parallelbplustree.cpp -I ../tree/inc -I ../bplustree/inc -I ../parallelbplustree/inc -std=c++20 -O2
+	g++ -o parallelbplustree_optimized.o -c ../parallelbplustree/src/parallelbplustree.cpp -I ../bplustree/inc -I ../parallelbplustree/inc -std=c++20 -O2
 
 
 # CLEAN

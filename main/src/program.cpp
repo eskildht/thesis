@@ -2,14 +2,31 @@
 #include <random>
 #include <iostream>
 
-Program::Program(const int order, const int threads, const int trees, const bool bloom) : tree(order, threads, trees, bloom) {}
+Program::Program(const int order, const int threads, const int trees, const bool bloom) : btree(nullptr), pbtree(new ParallelBplustree(order, threads, trees, bloom)) {}
+
+Program::Program(const int order) : btree(new Bplustree(order)), pbtree(nullptr) {}
+
+Program::~Program() {
+	if (btree) {
+		delete btree;
+	}
+	else {
+		delete pbtree;
+	}
+}
 
 void Program::printTreeInfo() {
-	std::cout << "---ParallelBplustree information--\n";
-	std::cout << "order: " << tree.getOrder() << "\n";
-	std::cout << "threads: " << tree.getNumThreads() << "\n";
-	std::cout << "trees: " << tree.getNumTrees() << "\n";
-	std::cout << "bloom: " << tree.areBloomFiltersUsed() << "\n";
+	if (btree) {
+		std::cout << "---Bplustree information--\n";
+		std::cout << "order: " << btree->getOrder() << "\n";
+	}
+	else {
+		std::cout << "---ParallelBplustree information--\n";
+		std::cout << "order: " << pbtree->getOrder() << "\n";
+		std::cout << "threads: " << pbtree->getNumThreads() << "\n";
+		std::cout << "trees: " << pbtree->getNumTrees() << "\n";
+		std::cout << "bloom: " << pbtree->areBloomFiltersUsed() << "\n";
+	}
 }
 
 void Program::buildRandomTree(const int numInserts, const int distLower, const int distUpper) {
@@ -24,7 +41,7 @@ void Program::buildRandomTree(const int numInserts, const int distLower, const i
 	for(int i = 0; i < numInserts; i++) {
 		int k = distr(gen);
 		int v = distr(gen);
-		buildFutures.push_back(std::move(tree.insert(k, v)));
+		buildFutures.push_back(std::move(pbtree->insert(k, v)));
 	}
 	for(int i = 0; i < numInserts; i++) {
 		buildFutures[i].wait();
@@ -39,7 +56,7 @@ void Program::buildTreeWithUniqueKeys(const int numInserts) {
 	std::cout << "Tree to be built by " << numInserts << " inserts\n";
 	std::cout << "Key/value pairs inserted consecutively taking values 1-" << numInserts << "\n";
 	for (int i = 1; i <= numInserts; i++) {
-		tree.insert(i, i);
+		pbtree->insert(i, i);
 	}
 }
 
@@ -58,7 +75,7 @@ void Program::searchTest(const int op) {
 	std::chrono::steady_clock::time_point t1 = std::chrono::high_resolution_clock::now();
 	for (int i = 0; i < op; i++) {
 		int k = distr(gen);
-		searchFutures.push_back(std::move(tree.search(k)));
+		searchFutures.push_back(std::move(pbtree->search(k)));
 	}
 	for (int i = 0; i < op; i++) {
 		for (int j = 0; j < searchFutures[i].size(); j++) {
@@ -99,7 +116,7 @@ void Program::deleteTest(const int op) {
 	std::chrono::steady_clock::time_point t1 = std::chrono::high_resolution_clock::now();
 	for (int i = 0; i < op; i++) {
 		int k = distr(gen);
-		deleteFutures.push_back(std::move(tree.remove(k)));
+		deleteFutures.push_back(std::move(pbtree->remove(k)));
 	}
 	for (int i = 0; i < op; i++) {
 		for (int j = 0; j < deleteFutures[i].size(); j++) {
@@ -159,7 +176,7 @@ void Program::updateTest(const int op) {
 			v.push_back(keyDist(gen));
 		}
 		t1 = std::chrono::high_resolution_clock::now();
-		updateFutures.push_back(std::move(tree.update(k, v)));
+		updateFutures.push_back(std::move(pbtree->update(k, v)));
 		t2 = std::chrono::high_resolution_clock::now();
 		ms_double += t2 - t1;
 	}
@@ -205,7 +222,7 @@ void Program::updateOrInsertTest(const int op) {
 	std::cout << "Keys to update uniformly drawn from range [" << keyDistLower << ", " << keyDistUpper << "]\n";
 	std::cout << "Updates performed with " <<  valuesDistLower << "-" << valuesDistUpper << " values\n";
 	std::cout << "Retrieving number of keys in each sub Bplustree for later use...\n";
-	std::vector<int> beforeTreeNumKeys = tree.getTreeNumKeys();
+	std::vector<int> beforeTreeNumKeys = pbtree->getTreeNumKeys();
 	std::cout << "Updating...\n";
 	std::vector<std::vector<std::future<bool>>> updateFutures;
 	updateFutures.reserve(op);
@@ -219,7 +236,7 @@ void Program::updateOrInsertTest(const int op) {
 			v.push_back(keyDist(gen));
 		}
 		t1 = std::chrono::high_resolution_clock::now();
-		updateFutures.push_back(std::move(tree.updateOrInsert(k, v)));
+		updateFutures.push_back(std::move(pbtree->updateOrInsert(k, v)));
 		t2 = std::chrono::high_resolution_clock::now();
 		ms_double += t2 - t1;
 	}
@@ -238,7 +255,7 @@ void Program::updateOrInsertTest(const int op) {
 	}
 	std::cout << beforeTreeNumKeys[beforeTreeNumKeys.size() - 1] << "]\n";
 	std::cout << "Number of unique keys in each tree after update: [";
-	std::vector<int> afterTreeNumKeys = tree.getTreeNumKeys();
+	std::vector<int> afterTreeNumKeys = pbtree->getTreeNumKeys();
 	for (int i = 0; i < afterTreeNumKeys.size() - 1; i++) {
 		std::cout << afterTreeNumKeys[i] << ", ";
 	}
