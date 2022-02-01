@@ -2,15 +2,24 @@
 #include <iostream>
 
 void printHelpInfo() {
-	std::cout << "Usage: ./optimized (./debug) [options]\n";
-	std::cout << "Available options:\n";
-	std::cout << "--order    " << "Order of the Bplustrees (default 5)\n";
-	std::cout << "--threads  " << "Number of threads to use in the thread pool (default std::thread::hardware_concurrency())\n";
-	std::cout << "--trees    " << "Number of base Bplustrees (default std::thread::hardware_concurrency())\n";
-	std::cout << "--bloom    " << "Enable or disable bloom filter usage (default 1)\n";
-	std::cout << "--test     " << "The test to perform (default \"\"), MUST be passed with one of the following: insert, search, delete, update, updateorinsert\n";
-	std::cout << "--op       " << "Number of operations to perform for the test specified (default 10000)\n";
-	std::cout << "--help     " << "Print this help\n";
+	std::cout << "USAGE:\n";
+	std::cout << "\t./optimized [OPTIONS]\n";
+	std::cout << "\n";
+	std::cout << "FLAGS:\n";
+	std::cout << "\t--bloom-disable             " << "Disable bloom filter usage if --tree option has value parallel\n";
+	std::cout << "\t--help                      " << "Print this help information\n";
+	std::cout << "\n";
+	std::cout << "OPTIONS:\n";
+	std::cout << "\t--build-distr-low <num>     " << "Lowest possible key value during tree build [default: 1]\n";
+	std::cout << "\t--build-distr-high <num>    " << "Highest possible key value during tree build [default: 1000000]\n";
+	std::cout << "\t--op <num>      " << "Number of operations to perform for the --test value specified [default: 1000000]\n";
+	std::cout << "\t--op-distr-low <num>        " << "Lowest possible key value during test operation [default: 1]\n";
+	std::cout << "\t--op-distr-high <num>       " << "Highest possible key value during test operation [default: 1000000]\n";
+	std::cout << "\t--order <num>               " << "Order of the Bplustree(s) [default: 5]\n";
+	std::cout << "\t--test <test>               " << "The test to carry out [default: ] [possible values: delete, insert, search, update, updateorinsert]\n";
+	std::cout << "\t--threads <num>             " << "Number of threads to use in the thread pool if --tree has value parallel [default: std::thread::hardware_concurrency()]\n";
+	std::cout << "\t--tree <type>               " << "The tree data structure to create [default: parallel] [possible values: basic, parallel]\n";
+	std::cout << "\t--trees <num>               " << "Number of Bplustrees to use if --tree option has value parallel [default: std::thread::hardware_concurrency()]\n";
 }
 
 int main(int argc, char *argv[]) {
@@ -66,21 +75,21 @@ int main(int argc, char *argv[]) {
 		std::cout << "Test to run was not specified. Pass --test with one of the following:\ninsert, search, update, updateorinsert\n";
 		return 0;
 	}
-	Program mainPB(order, threads, trees, bloom);
-	mainPB.printTreeInfo();
+	Program program(order, threads, trees, bloom);
+	program.printTreeInfo();
 	if (test == "insert") {
-		mainPB.insertTest(op);
+		program.insertTest(op);
 	}
 	else if (test == "search") {
-		mainPB.searchTest(op);
+		program.searchTest(op);
 	}
 	else if (test == "delete") {
-		mainPB.deleteTest(op);
+		program.deleteTest(op);
 	}
 	else if (test == "update") {
-		mainPB.updateTest(op);
+		program.updateTest(op);
 	}
 	else if (test == "updateorinsert") {
-		mainPB.updateOrInsertTest(op);
+		program.updateOrInsertTest(op);
 	}
 }
