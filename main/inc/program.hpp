@@ -32,4 +32,6 @@ class Program {
 		std::tuple<std::chrono::duration<double, std::ratio<1, 1000>>::rep, int, int> searchParallelBplustree(const int op);
 		std::tuple<std::chrono::duration<double, std::ratio<1, 1000>>::rep, int, int> deleteBplustree(const int op);
 		std::tuple<std::chrono::duration<double, std::ratio<1, 1000>>::rep, int, int> deleteParallelBplustree(const int op);
+		std::tuple<std::chrono::duration<double, std::ratio<1, 1000>>::rep, int, int> updateBplustree(const int op);
+		std::tuple<std::chrono::duration<double, std::ratio<1, 1000>>::rep, int, int> updateParallelBplustree(const int op);
 };
