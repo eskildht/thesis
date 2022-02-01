@@ -12,7 +12,7 @@ class Program {
 		void deleteTest(const int op, const int treeSize);
 		void insertTest(const int op);
 		void updateTest(const int op, const int treeSize);
-		void updateOrInsertTest(const int op);
+		void updateOrInsertTest(const int op, const int treeSIze);
 		~Program();
 	private:
 		ParallelBplustree *pbtree;

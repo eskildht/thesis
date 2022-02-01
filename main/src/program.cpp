@@ -212,7 +212,6 @@ void Program::updateTest(const int op, const int treeSize) {
 	std::cout << "Update performance: " << op / (ms / 1000) << " ops\n";
 }
 
-
 std::tuple<std::chrono::duration<double, std::ratio<1, 1000>>::rep, int, int> Program::updateBplustree(const int op) {
 	std::vector<bool> updateResult;
 	updateResult.reserve(op);
@@ -274,21 +273,13 @@ std::tuple<std::chrono::duration<double, std::ratio<1, 1000>>::rep, int, int> Pr
 	return std::make_tuple(ms_double.count(), hits, op - hits);
 }
 
-void Program::updateOrInsertTest(const int op) {
+void Program::updateOrInsertTest(const int op, const int treeSize) {
 	std::cout << "---Update or insert performance test---\n";
-	int keyDistrLow = 1;
-	int keyDistrHigh = 500000;
-	int valuesDistrLow = 1;
-	int valuesDistrHigh = 5;
-	buildRandomTree(1000000, keyDistrLow, keyDistrHigh);
+	buildRandomTree(treeSize);
 	std::cout << "Update operations to perform: " << op << "\n";
-	std::random_device rd;
-	std::mt19937_64 gen(rd());
-	std::uniform_int_distribution<> keyDist(keyDistrLow, keyDistrHigh);
-	std::uniform_int_distribution<> valuesDist(valuesDistrLow, valuesDistrHigh);
-	std::cout << "Keys to update uniformly drawn from range [" << keyDistrLow << ", " << keyDistrHigh << "]\n";
-	std::cout << "Updates performed with " <<  valuesDistrLow << "-" << valuesDistrHigh << " values\n";
-	std::cout << "Retrieving number of keys in each sub Bplustree for later use...\n";
+	std::cout << "Keys to update uniformly drawn from range [" << opDistrLow << ", " << opDistrHigh << "]\n";
+	std::cout << "Updates performed with single values only\n";
+	std::cout << "Retrieving number of unique keys in each sub Bplustree for later use...\n";
 	std::vector<int> beforeTreeNumKeys = pbtree->getTreeNumKeys();
 	std::cout << "Updating...\n";
 	std::vector<std::vector<std::future<bool>>> updateFutures;
@@ -297,11 +288,8 @@ void Program::updateOrInsertTest(const int op) {
 	std::chrono::steady_clock::time_point t1;
 	std::chrono::steady_clock::time_point t2;
 	for (int i = 0; i < op; i++) {
-		int k = keyDist(gen);
-		std::vector<int> v;
-		for (int j = 0; j < valuesDist(gen); j++) {
-			v.push_back(keyDist(gen));
-		}
+		int k = opDistr(gen);
+		std::vector<int> v = {i};
 		t1 = std::chrono::high_resolution_clock::now();
 		updateFutures.push_back(std::move(pbtree->updateOrInsert(k, v)));
 		t2 = std::chrono::high_resolution_clock::now();
@@ -337,5 +325,5 @@ void Program::updateOrInsertTest(const int op) {
 	std::cout << "Update finished in: " << ms_double.count() << " ms\n";
 	std::cout << "Successful updates: " << hits << "\n";
 	std::cout << "Unsuccessful updates leading to inserts: " << misses << "\n";
-	std::cout << "Update or insert performance: " << op / (ms_double.count() / 1000) << " ops\n";
+	std::cout << "Updateorinsert performance: " << op / (ms_double.count() / 1000) << " ops\n";
 }
