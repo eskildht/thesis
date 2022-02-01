@@ -26,14 +26,13 @@ void Program::printBplustreeInfo() {
 void Program::printParallelBplustreeInfo() {
 	std::cout << "---ParallelBplustree information--\n";
 	std::cout << "order: " << pbtree->getOrder() << "\n";
-	std::cout << "threads: " << pbtree->getNumThreads() << "\n";
 	std::cout << "trees: " << pbtree->getNumTrees() << "\n";
 	std::cout << "bloom: " << pbtree->areBloomFiltersUsed() << "\n";
 }
 
-void Program::insertTest(const int op, const bool runAsOp) {
+void Program::insertTest(const int op) {
 	std::cout << "---Insert performance test---\n";
-	runAsOp ? buildRandomTree(op, true) : buildRandomTree(op, false);
+	buildRandomTree(op, true);
 }
 
 void Program::buildRandomTree(const int numInserts, const bool runAsOp) {
@@ -51,16 +50,6 @@ void Program::buildRandomTree(const int numInserts, const bool runAsOp) {
 	std::cout << "Build performance: " << numInserts / (ms / 1000) << " ops\n";
 }
 
-std::chrono::duration<double, std::ratio<1, 1000>>::rep Program::buildRandomBplustree(const int numInserts, std::uniform_int_distribution<> &distr) {
-	std::chrono::steady_clock::time_point t1 = std::chrono::high_resolution_clock::now();
-	for(int i = 0; i < numInserts; i++) {
-		int k = distr(gen);
-		int v = distr(gen);
-		btree->insert(k, v);
-	}
-	std::chrono::steady_clock::time_point t2 = std::chrono::high_resolution_clock::now();
-	return (t2 - t1).count();
-};
 
 std::chrono::duration<double, std::ratio<1, 1000>>::rep Program::buildRandomParallelBplustree(const int numInserts, std::uniform_int_distribution<> &distr) {
 	std::vector<std::future<void>> buildFutures;
@@ -85,14 +74,43 @@ void Program::buildTreeWithUniqueKeys(const int numInserts) {
 	}
 }
 
-void Program::searchTest(const int op) {
+void Program::searchTest(const int op, const int treeSize) {
 	std::cout << "---Search performance test---\n";
-	int distrLow = 1;
-	int distrHigh = 500000;
-	buildRandomTree(1000000, distrLow, distrHigh);
+	buildRandomTree(treeSize);
 	std::cout << "Search operations to perform: " << op << "\n";
-	std::cout << "Keys to search for uniformly drawn from range [" << distrLow << ", " << distrHigh << "]\n";
+	std::cout << "Keys to search for uniformly drawn from range [" << opDistrLow << ", " << opDistrHigh << "]\n";
 	std::cout << "Searching...\n";
+	std::tuple<std::chrono::duration<double, std::ratio<1, 1000>>::rep, int, int> result = btree ? searchBplustree(op) : searchParallelBplustree(op);
+	std::chrono::duration<double, std::ratio<1, 1000>>::rep ms = std::get<0>(result);
+	int hits = std::get<1>(result);
+	int misses = std::get<2>(result);
+	std::cout << "Search finished in: " << ms << " ms\n";
+	std::cout << "Search key hits: " << hits << "\n";
+	std::cout << "Search key misses: " << misses << "\n";
+	std::cout << "Search performance: " << op / (ms / 1000) << " ops\n";
+}
+
+
+std::tuple<std::chrono::duration<double, std::ratio<1, 1000>>::rep, int, int> Program::searchBplustree(const int op) {
+	std::vector<const std::vector<int> *> searchResult;
+	std::chrono::steady_clock::time_point t1 = std::chrono::high_resolution_clock::now();
+	for (int i = 0; i < op; i++) {
+		int k = opDistr(gen);
+		searchResult.push_back(std::move(btree->search(k)));
+	}
+	std::chrono::steady_clock::time_point t2 = std::chrono::high_resolution_clock::now();
+	std::cout << "Calculating statistics...\n";
+	int hits = 0;
+	for (int i = 0; i < op; i++) {
+		if (searchResult[i]) {
+			hits++;
+			break;
+		}
+	}
+	return std::make_tuple((t2 - t1).count(), hits, op - hits);
+};
+
+std::tuple<std::chrono::duration<double, std::ratio<1, 1000>>::rep, int, int> Program::searchParallelBplustree(const int op) {
 	std::vector<std::vector<std::future<const std::vector<int> *>>> searchFutures;
 	std::chrono::steady_clock::time_point t1 = std::chrono::high_resolution_clock::now();
 	for (int i = 0; i < op; i++) {
@@ -106,7 +124,6 @@ void Program::searchTest(const int op) {
 	}
 	std::chrono::steady_clock::time_point t2 = std::chrono::high_resolution_clock::now();
 	std::cout << "Calculating statistics...\n";
-	std::chrono::duration<double, std::milli> ms_double = t2 - t1;
 	int hits = 0;
 	for (int i = 0; i < op; i++) {
 		for (int j = 0; j < searchFutures[i].size(); j++) {
@@ -116,12 +133,8 @@ void Program::searchTest(const int op) {
 			}
 		}
 	}
-	int misses = op - hits;
-	std::cout << "Search finished in: " << ms_double.count() << " ms\n";
-	std::cout << "Search key hits: " << hits << "\n";
-	std::cout << "Search key misses: " << misses << "\n";
-	std::cout << "Search performance: " << op / (ms_double.count() / 1000) << " ops\n";
-}
+	return std::make_tuple((t2 - t1).count(), hits, op - hits);
+};
 
 void Program::deleteTest(const int op) {
 	std::cout << "---Delete performance test---\n";
@@ -163,7 +176,6 @@ void Program::deleteTest(const int op) {
 	std::cout << "Delete key misses: " << misses << "\n";
 	std::cout << "Delete performance: " << op / (ms_double.count() / 1000) << " ops\n";
 }
-
 
 void Program::updateTest(const int op) {
 	std::cout << "---Update performance test---\n";
