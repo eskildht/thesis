@@ -30,4 +30,6 @@ class Program {
 		std::chrono::duration<double, std::ratio<1, 1000>>::rep buildRandomParallelBplustree(const int numInserts, std::uniform_int_distribution<> &distr);
 		std::tuple<std::chrono::duration<double, std::ratio<1, 1000>>::rep, int, int> searchBplustree(const int op);
 		std::tuple<std::chrono::duration<double, std::ratio<1, 1000>>::rep, int, int> searchParallelBplustree(const int op);
+		std::tuple<std::chrono::duration<double, std::ratio<1, 1000>>::rep, int, int> deleteBplustree(const int op);
+		std::tuple<std::chrono::duration<double, std::ratio<1, 1000>>::rep, int, int> deleteParallelBplustree(const int op);
 };
