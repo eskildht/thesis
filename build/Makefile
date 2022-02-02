@@ -30,8 +30,8 @@ parallelbplustree_debug.o: ../parallelbplustree/src/parallelbplustree.cpp ../par
 
 
 # OPTIMIZED
-optimized: main_optimized.o program_optimized.o node_optimized.o internalnode_optimized.o leafnode_optimized.o tree_optimized.o bplustree_optimized.o parallelbplustree_optimized.o
-	g++ main_optimized.o program_optimized.o node_optimized.o internalnode_optimized.o leafnode_optimized.o tree_optimized.o bplustree_optimized.o parallelbplustree_optimized.o -o optimized -std=c++20
+optimized: main_optimized.o program_optimized.o node_optimized.o internalnode_optimized.o leafnode_optimized.o bplustree_optimized.o parallelbplustree_optimized.o
+	g++ main_optimized.o program_optimized.o node_optimized.o internalnode_optimized.o leafnode_optimized.o bplustree_optimized.o parallelbplustree_optimized.o -o optimized -std=c++20
 	@echo "Optimized build compiled and linked"
 
 main_optimized.o: ../main/src/main.cpp
@@ -60,7 +60,7 @@ parallelbplustree_optimized.o: ../parallelbplustree/src/parallelbplustree.cpp ..
 clean: clean_debug clean_optimized
 
 clean_debug:
-	rm *_debug.o debug
+	-rm *_debug.o debug
 
 clean_optimized:
-	rm *_optimized.o optimized
+	-rm *_optimized.o optimized
