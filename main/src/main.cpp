@@ -1,5 +1,6 @@
 #include "program.hpp"
 #include <iostream>
+#include <sstream>
 
 void printHelpInfo() {
 	std::cout << "USAGE:\n";
@@ -22,7 +23,7 @@ void printHelpInfo() {
 	std::cout << "\t--trees <num>               " << "Number of Bplustrees to use if --tree option has value parallel [default: std::thread::hardware_concurrency()]\n";
 }
 
-std::tuple<std::map<std::string, bool>, std::tuple<std::map<std::string, int>, std::map<std::string, std::string>>> parseUserInput() {
+std::tuple<std::map<std::string, bool>, std::tuple<std::map<std::string, int>, std::map<std::string, std::string>>> parseUserInput(int argc, char *argv[]) {
 	std::map<std::string, bool> flagsBool = {
 		{"--bloom-disable", false},
 	 	{"--help", false}
@@ -41,76 +42,41 @@ std::tuple<std::map<std::string, bool>, std::tuple<std::map<std::string, int>, s
 		{"--test", ""},
 		{"--tree", "parallel"}
 	};
+	std::map<std::string, std::vector<std::string>> optionsStringPossibleValues = {
+		{"--test", {"delete", "insert", "search", "update", "updateorinsert"}},
+		{"--tree", {"basic", "parallel"}}
+	};
+	try {
+		for (int i = 1; i < argc; i++) {
+			if (flagsBool.count(argv[i])) {
+				flagsBool[argv[i]] = true;
+			}
+			else if (optionsInt.count(argv[i])) {
+				optionsInt[argv[i]] = std::stoi(argv[i+1]);
+			}
+			else if (optionsString.count(argv[i])) {
+				std::vector<std::string> &possibleValues = optionsStringPossibleValues[argv[i]];
+				if (std::find(possibleValues.begin(), possibleValues.end(), argv[i+1]) != possibleValues.end()) {
+					optionsString[argv[i]] = argv[i+1];
+				}
+				else {
+					std::stringstream msg; 
+					msg << argv[i+1] << " is not a possible value for " << argv[i];
+					throw msg.str();
+				}
+			}
+		}
+
+	}
+	catch (std::basic_stringstream<char>::string_type errorMsg) {
+		std::cout << errorMsg;
+	}
+	catch (...) {
+		std::cout << "Error occured during parseUserInput: check flags and options\n";
+	}
+	return std::make_tuple(flagsBool, std::make_tuple(optionsInt, optionsString));
 }
 
 int main(int argc, char *argv[]) {
-	std::vector<std::string> validArgv = {"--order", "--threads", "--trees", "--bloom", "--test", "--op", "--help"};
-	// Valid default values for all args except --test
-	int order = 5;
-	int threads = std::thread::hardware_concurrency();
-	int trees = std::thread::hardware_concurrency();
-	bool bloom = true;
-	std::string test = "";
-	int op = 10000;
-	// If no arguments are passed print --help since at least --test is needed
-	if (argc == 1) {
-		printHelpInfo();
-		return 0;
-	}
-	// Parse argv and set arguments
-	for (int i = 1; i < argc; i++) {
-		std::vector<std::string>::iterator it = std::find(validArgv.begin(), validArgv.end(), argv[i]);
-		if (it != validArgv.end()) {
-			switch (it - validArgv.begin()) {
-				// order
-				case 0:
-					order = std::stoi(argv[i+1]);
-					break;
-				// threads
-				case 1:
-					threads = std::stoi(argv[i+1]);
-					break;
-				// trees
-				case 2:
-					threads = std::stoi(argv[i+1]);
-					break;
-				// bloom
-				case 3:
-					bloom = std::stoi(argv[i+1]) == 0 ? false : true;
-					break;
-				// test
-				case 4:
-					test = argv[i+1];
-					break;
-				// op
-				case 5:
-					op = std::stoi(argv[i+1]);
-					break;
-				case 6:
-					printHelpInfo();
-					return 0;
-			}
-		}
-	}
-	if (test == "") {
-		std::cout << "Test to run was not specified. Pass --test with one of the following:\ninsert, search, update, updateorinsert\n";
-		return 0;
-	}
-	Program program(order, threads, trees, bloom);
-	program.printTreeInfo();
-	if (test == "insert") {
-		program.insertTest(op);
-	}
-	else if (test == "search") {
-		program.searchTest(op);
-	}
-	else if (test == "delete") {
-		program.deleteTest(op);
-	}
-	else if (test == "update") {
-		program.updateTest(op);
-	}
-	else if (test == "updateorinsert") {
-		program.updateOrInsertTest(op);
-	}
+	
 }
