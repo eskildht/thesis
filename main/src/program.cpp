@@ -48,7 +48,6 @@ void Program::buildRandomTree(const int numInserts, const bool show, const bool 
 	std::chrono::duration<double, std::ratio<1, 1000000000>>::rep ns = btree ? buildRandomBplustree(numInserts, distr) : buildRandomParallelBplustree(numInserts, distr);
 	std::cout << "Build finished in: " << ns / 1000000 << " ms\n";
 	std::cout << "Build performance: " << numInserts / (ns / 1000000000) << " ops\n";
-	std::cout << show << "\n";
 	if (show) {
 		if (numInserts <= 1000) {
 			std::cout << "---Tree print---\n";
@@ -113,7 +112,6 @@ std::tuple<std::chrono::duration<double, std::ratio<1, 1000000000>>::rep, int, i
 	for (int i = 0; i < op; i++) {
 		if (searchResult[i]) {
 			hits++;
-			break;
 		}
 	}
 	return std::make_tuple((t2 - t1).count(), hits, op - hits);
@@ -217,7 +215,7 @@ void Program::updateTest(const int op, const int treeSize, const bool show) {
 	std::chrono::duration<double, std::ratio<1, 1000000000>>::rep ns = std::get<0>(result);
 	int hits = std::get<1>(result);
 	int misses = std::get<2>(result);
-	std::cout << "Update finished in: " << ns << " ms\n";
+	std::cout << "Update finished in: " << ns / 1000000 << " ms\n";
 	std::cout << "Successful updates: " << hits << "\n";
 	std::cout << "Unsuccessful updates (key not present in tree): " << misses << "\n";
 	std::cout << "Update performance: " << op / (ns / 1000000000) << " ops\n";

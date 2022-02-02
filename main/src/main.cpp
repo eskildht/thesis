@@ -64,7 +64,7 @@ std::tuple<std::map<std::string, bool>, std::map<std::string, int>, std::map<std
 			}
 			else {
 				std::stringstream msg;
-				msg << argv[i+1] << " is not a possible value for " << argv[i];
+				msg << argv[i+1] << " is not a possible value for " << argv[i] << "\n";
 				throw msg.str();
 			}
 		}
