@@ -71,6 +71,7 @@ std::chrono::duration<double, std::ratio<1, 1000000000>>::rep Program::buildRand
 
 std::chrono::duration<double, std::ratio<1, 1000000000>>::rep Program::buildRandomParallelBplustree(const int numInserts, std::uniform_int_distribution<> &distr) {
 	std::vector<std::future<void>> buildFutures;
+	buildFutures.reserve(numInserts);
 	std::chrono::steady_clock::time_point t1 = std::chrono::high_resolution_clock::now();
 	for(int i = 0; i < numInserts; i++) {
 		int k = distr(gen);
