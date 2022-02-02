@@ -6,12 +6,12 @@ class Program {
 		Program(const int order, const int threads, const int trees, const bool bloom, const int opDistrLow, const int opDistrHigh, const int buildDistrLow, const int buildDistrHigh);
 		Program(const int order, const int opDistrLow, const int opDistrHigh, const int buildDistrLow, const int buildDistrHigh);
 		void printTreeInfo();
-		void buildRandomTree(const int numInserts, const bool runAsOp = false);
-		void searchTest(const int op, const int treeSize);
-		void deleteTest(const int op, const int treeSize);
-		void insertTest(const int op);
-		void updateTest(const int op, const int treeSize);
-		void updateOrInsertTest(const int op, const int treeSIze);
+		void buildRandomTree(const int numInserts, const bool show = false, const bool runAsOp = false);
+		void searchTest(const int op, const int treeSize, const bool show);
+		void deleteTest(const int op, const int treeSize, const bool show);
+		void insertTest(const int op, const bool show);
+		void updateTest(const int op, const int treeSize, const bool show);
+		void updateOrInsertTest(const int op, const int treeSize, const bool show);
 		~Program();
 	private:
 		ParallelBplustree *pbtree;

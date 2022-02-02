@@ -9,6 +9,7 @@ void printHelpInfo() {
 	std::cout << "FLAGS:\n";
 	std::cout << "\t--bloom-disable             " << "Disable bloom filter usage if --tree option has value parallel\n";
 	std::cout << "\t--help                      " << "Print this help information\n";
+	std::cout << "\t--show                      " << "Print the tree after build if --tree-size value <= 1000\n";
 	std::cout << "\n";
 	std::cout << "OPTIONS:\n";
 	std::cout << "\t--build-distr-high <num>    " << "Highest possible key value during tree build [default: 1000000]\n";
@@ -27,7 +28,8 @@ void printHelpInfo() {
 std::tuple<std::map<std::string, bool>, std::map<std::string, int>, std::map<std::string, std::string>> parseUserInput(int argc, char *argv[]) {
 	std::map<std::string, bool> flagsBool = {
 		{"--bloom-disable", false},
-		{"--help", false}
+		{"--help", false},
+		{"--show", false}
 	};
 	std::map<std::string, int> optionsInt = {
 		{"--build-distr-high", 1000000},
@@ -70,21 +72,22 @@ std::tuple<std::map<std::string, bool>, std::map<std::string, int>, std::map<std
 	return std::make_tuple(flagsBool, optionsInt, optionsString);
 }
 
-void runProgram(Program &program, const std::string &test, const int op, const int treeSize) {
+void runProgram(Program &program, const std::string &test, const int op, const int treeSize, const bool show) {
+	program.printTreeInfo();
 	if (test == "delete") {
-		program.deleteTest(op, treeSize);
+		program.deleteTest(op, treeSize, show);
 	}
 	else if (test == "insert") {
-		program.insertTest(op);
+		program.insertTest(op, show);
 	}
 	else if (test == "search") {
-		program.searchTest(op, treeSize);
+		program.searchTest(op, treeSize, show);
 	}
 	else if (test == "update") {
-		program.updateTest(op, treeSize);
+		program.updateTest(op, treeSize, show);
 	}
 	else if (test == "updateorinsert") {
-		program.updateOrInsertTest(op, treeSize);
+		program.updateOrInsertTest(op, treeSize, show);
 	}
 }
 
@@ -113,11 +116,11 @@ int main(int argc, char *argv[]) {
 	else {
 		if (optionsString["--tree"] == "basic") {
 			Program program(optionsInt["--order"], optionsInt["--op-distr-low"], optionsInt["--op-distr-high"], optionsInt["--build-distr-low"], optionsInt["--build-distr-high"]);
-			runProgram(program, optionsString["--test"], optionsInt["--op"], optionsInt["--tree-size"]);
+			runProgram(program, optionsString["--test"], optionsInt["--op"], optionsInt["--tree-size"], flagsBool["--show"]);
 		}
 		else {
 			Program program(optionsInt["--order"], optionsInt["--threads"], optionsInt["--trees"], flagsBool["--bloom"], optionsInt["--op-distr-low"], optionsInt["--op-distr-high"], optionsInt["--build-distr-low"], optionsInt["--build-distr-high"]);
-			runProgram(program, optionsString["--test"], optionsInt["--op"], optionsInt["--tree-size"]);
+			runProgram(program, optionsString["--test"], optionsInt["--op"], optionsInt["--tree-size"], flagsBool["--show"]);
 		}
 	}
 }

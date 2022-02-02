@@ -30,12 +30,12 @@ void Program::printParallelBplustreeInfo() {
 	std::cout << "bloom: " << pbtree->areBloomFiltersUsed() << "\n";
 }
 
-void Program::insertTest(const int op) {
+void Program::insertTest(const int op, const bool show) {
 	std::cout << "---Insert performance test---\n";
-	buildRandomTree(op, true);
+	buildRandomTree(op, show, true);
 }
 
-void Program::buildRandomTree(const int numInserts, const bool runAsOp) {
+void Program::buildRandomTree(const int numInserts, const bool show, const bool runAsOp) {
 	std::cout << "Tree to be built by " << numInserts << " inserts\n";
 	if (runAsOp) {
 		std::cout << "Key/value pairs uniformly drawn from range [" << opDistrLow << ", " << opDistrHigh << "]\n";
@@ -48,6 +48,14 @@ void Program::buildRandomTree(const int numInserts, const bool runAsOp) {
 	std::chrono::duration<double, std::ratio<1, 1000000000>>::rep ns = btree ? buildRandomBplustree(numInserts, distr) : buildRandomParallelBplustree(numInserts, distr);
 	std::cout << "Build finished in: " << ns / 1000000 << " ms\n";
 	std::cout << "Build performance: " << numInserts / (ns / 1000000000) << " ops\n";
+	std::cout << show << "\n";
+	if (show) {
+		if (numInserts <= 1000) {
+			std::cout << "---Tree print---\n";
+			btree ? btree->show() : pbtree->show();
+			std::cout << "---Tree print end---\n";
+		}
+	}
 }
 
 std::chrono::duration<double, std::ratio<1, 1000000000>>::rep Program::buildRandomBplustree(const int numInserts, std::uniform_int_distribution<> &distr) {
@@ -76,9 +84,9 @@ std::chrono::duration<double, std::ratio<1, 1000000000>>::rep Program::buildRand
 	return (t2 - t1).count();
 };
 
-void Program::searchTest(const int op, const int treeSize) {
+void Program::searchTest(const int op, const int treeSize, const bool show) {
 	std::cout << "---Search performance test---\n";
-	buildRandomTree(treeSize);
+	buildRandomTree(treeSize, show);
 	std::cout << "Search operations to perform: " << op << "\n";
 	std::cout << "Keys to search for uniformly drawn from range [" << opDistrLow << ", " << opDistrHigh << "]\n";
 	std::cout << "Searching...\n";
@@ -137,9 +145,9 @@ std::tuple<std::chrono::duration<double, std::ratio<1, 1000000000>>::rep, int, i
 	return std::make_tuple((t2 - t1).count(), hits, op - hits);
 };
 
-void Program::deleteTest(const int op, const int treeSize) {
+void Program::deleteTest(const int op, const int treeSize, const bool show) {
 	std::cout << "---Delete performance test---\n";
-	buildRandomTree(treeSize);
+	buildRandomTree(treeSize, show);
 	std::cout << "Delete operations to perform: " << op << "\n";
 	std::cout << "Keys to search for uniformly drawn from range [" << opDistrLow << ", " << opDistrHigh << "]\n";
 	std::cout << "Deleting...\n";
@@ -198,9 +206,9 @@ std::tuple<std::chrono::duration<double, std::ratio<1, 1000000000>>::rep, int, i
 		return std::make_tuple((t2 - t1).count(), hits, op - hits);
 }
 
-void Program::updateTest(const int op, const int treeSize) {
+void Program::updateTest(const int op, const int treeSize, const bool show) {
 	std::cout << "---Update performance test---\n";
-	buildRandomTree(treeSize);
+	buildRandomTree(treeSize, show);
 	std::cout << "Update operations to perform: " << op << "\n";
 	std::cout << "Keys to update uniformly drawn from range [" << opDistrLow << ", " << opDistrHigh << "]\n";
 	std::cout << "Updates performed with single values only\n";
@@ -276,9 +284,9 @@ std::tuple<std::chrono::duration<double, std::ratio<1, 1000000000>>::rep, int, i
 	return std::make_tuple(ns_double.count(), hits, op - hits);
 }
 
-void Program::updateOrInsertTest(const int op, const int treeSize) {
+void Program::updateOrInsertTest(const int op, const int treeSize, const bool show) {
 	std::cout << "---Update or insert performance test---\n";
-	buildRandomTree(treeSize);
+	buildRandomTree(treeSize, show);
 	std::cout << "Update operations to perform: " << op << "\n";
 	std::cout << "Keys to update uniformly drawn from range [" << opDistrLow << ", " << opDistrHigh << "]\n";
 	std::cout << "Updates performed with single values only\n";
