@@ -98,9 +98,11 @@ int main(int argc, char *argv[]) {
 	}
 	catch (std::basic_stringstream<char>::string_type errorMsg) {
 		std::cout << errorMsg;
+		return 0;
 	}
 	catch (...) {
 		std::cout << "Error occured during parseUserInput: check flags and options\n";
+		return 0;
 	}
 	std::map<std::string, bool> &flagsBool = std::get<0>(result);
 	std::map<std::string, int> &optionsInt = std::get<1>(result);
