@@ -50,6 +50,17 @@ void Program::buildRandomTree(const int numInserts, const bool runAsOp) {
 	std::cout << "Build performance: " << numInserts / (ms / 1000) << " ops\n";
 }
 
+std::chrono::duration<double, std::ratio<1, 1000>>::rep Program::buildRandomBplustree(const int numInserts, std::uniform_int_distribution<> &distr) {
+	std::chrono::steady_clock::time_point t1 = std::chrono::high_resolution_clock::now();
+	for(int i = 0; i < numInserts; i++) {
+		int k = distr(gen);
+		int v = distr(gen);
+		btree->insert(k, v);
+	}
+	std::chrono::steady_clock::time_point t2 = std::chrono::high_resolution_clock::now();
+	return (t2 - t1).count();
+}
+
 std::chrono::duration<double, std::ratio<1, 1000>>::rep Program::buildRandomParallelBplustree(const int numInserts, std::uniform_int_distribution<> &distr) {
 	std::vector<std::future<void>> buildFutures;
 	std::chrono::steady_clock::time_point t1 = std::chrono::high_resolution_clock::now();
@@ -64,14 +75,6 @@ std::chrono::duration<double, std::ratio<1, 1000>>::rep Program::buildRandomPara
 	std::chrono::steady_clock::time_point t2 = std::chrono::high_resolution_clock::now();
 	return (t2 - t1).count();
 };
-
-void Program::buildTreeWithUniqueKeys(const int numInserts) {
-	std::cout << "Tree to be built by " << numInserts << " inserts\n";
-	std::cout << "Key/value pairs inserted consecutively taking values 1-" << numInserts << "\n";
-	for (int i = 1; i <= numInserts; i++) {
-		pbtree->insert(i, i);
-	}
-}
 
 void Program::searchTest(const int op, const int treeSize) {
 	std::cout << "---Search performance test---\n";

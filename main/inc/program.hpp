@@ -7,7 +7,6 @@ class Program {
 		Program(const int order, const int opDistrLow, const int opDistrHigh, const int buildDistrLow, const int buildDistrHigh);
 		void printTreeInfo();
 		void buildRandomTree(const int numInserts, const bool runAsOp = false);
-		void buildTreeWithUniqueKeys(const int numInserts);
 		void searchTest(const int op, const int treeSize);
 		void deleteTest(const int op, const int treeSize);
 		void insertTest(const int op);
