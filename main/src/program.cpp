@@ -45,12 +45,12 @@ void Program::buildRandomTree(const int numInserts, const bool runAsOp) {
 	}
 	std::uniform_int_distribution<> &distr = runAsOp ? opDistr : buildDistr;
 	std::cout << "Building...\n";
-	std::chrono::duration<double, std::ratio<1, 1000>>::rep ms = btree ? buildRandomBplustree(numInserts, distr) : buildRandomParallelBplustree(numInserts, distr);
-	std::cout << "Build finished in: " << ms << " ms\n";
-	std::cout << "Build performance: " << numInserts / (ms / 1000) << " ops\n";
+	std::chrono::duration<double, std::ratio<1, 1000000000>>::rep ns = btree ? buildRandomBplustree(numInserts, distr) : buildRandomParallelBplustree(numInserts, distr);
+	std::cout << "Build finished in: " << ns / 1000000 << " ms\n";
+	std::cout << "Build performance: " << numInserts / (ns / 1000000000) << " ops\n";
 }
 
-std::chrono::duration<double, std::ratio<1, 1000>>::rep Program::buildRandomBplustree(const int numInserts, std::uniform_int_distribution<> &distr) {
+std::chrono::duration<double, std::ratio<1, 1000000000>>::rep Program::buildRandomBplustree(const int numInserts, std::uniform_int_distribution<> &distr) {
 	std::chrono::steady_clock::time_point t1 = std::chrono::high_resolution_clock::now();
 	for(int i = 0; i < numInserts; i++) {
 		int k = distr(gen);
@@ -61,7 +61,7 @@ std::chrono::duration<double, std::ratio<1, 1000>>::rep Program::buildRandomBplu
 	return (t2 - t1).count();
 }
 
-std::chrono::duration<double, std::ratio<1, 1000>>::rep Program::buildRandomParallelBplustree(const int numInserts, std::uniform_int_distribution<> &distr) {
+std::chrono::duration<double, std::ratio<1, 1000000000>>::rep Program::buildRandomParallelBplustree(const int numInserts, std::uniform_int_distribution<> &distr) {
 	std::vector<std::future<void>> buildFutures;
 	std::chrono::steady_clock::time_point t1 = std::chrono::high_resolution_clock::now();
 	for(int i = 0; i < numInserts; i++) {
@@ -82,17 +82,17 @@ void Program::searchTest(const int op, const int treeSize) {
 	std::cout << "Search operations to perform: " << op << "\n";
 	std::cout << "Keys to search for uniformly drawn from range [" << opDistrLow << ", " << opDistrHigh << "]\n";
 	std::cout << "Searching...\n";
-	std::tuple<std::chrono::duration<double, std::ratio<1, 1000>>::rep, int, int> result = btree ? searchBplustree(op) : searchParallelBplustree(op);
-	std::chrono::duration<double, std::ratio<1, 1000>>::rep ms = std::get<0>(result);
+	std::tuple<std::chrono::duration<double, std::ratio<1, 1000000000>>::rep, int, int> result = btree ? searchBplustree(op) : searchParallelBplustree(op);
+	std::chrono::duration<double, std::ratio<1, 1000000000>>::rep ns = std::get<0>(result);
 	int hits = std::get<1>(result);
 	int misses = std::get<2>(result);
-	std::cout << "Search finished in: " << ms << " ms\n";
+	std::cout << "Search finished in: " << ns / 1000000 << " ms\n";
 	std::cout << "Search key hits: " << hits << "\n";
 	std::cout << "Search key misses: " << misses << "\n";
-	std::cout << "Search performance: " << op / (ms / 1000) << " ops\n";
+	std::cout << "Search performance: " << op / (ns / 1000000000) << " ops\n";
 }
 
-std::tuple<std::chrono::duration<double, std::ratio<1, 1000>>::rep, int, int> Program::searchBplustree(const int op) {
+std::tuple<std::chrono::duration<double, std::ratio<1, 1000000000>>::rep, int, int> Program::searchBplustree(const int op) {
 	std::vector<const std::vector<int> *> searchResult;
 	std::chrono::steady_clock::time_point t1 = std::chrono::high_resolution_clock::now();
 	for (int i = 0; i < op; i++) {
@@ -111,7 +111,7 @@ std::tuple<std::chrono::duration<double, std::ratio<1, 1000>>::rep, int, int> Pr
 	return std::make_tuple((t2 - t1).count(), hits, op - hits);
 };
 
-std::tuple<std::chrono::duration<double, std::ratio<1, 1000>>::rep, int, int> Program::searchParallelBplustree(const int op) {
+std::tuple<std::chrono::duration<double, std::ratio<1, 1000000000>>::rep, int, int> Program::searchParallelBplustree(const int op) {
 	std::vector<std::vector<std::future<const std::vector<int> *>>> searchFutures;
 	std::chrono::steady_clock::time_point t1 = std::chrono::high_resolution_clock::now();
 	for (int i = 0; i < op; i++) {
@@ -143,17 +143,17 @@ void Program::deleteTest(const int op, const int treeSize) {
 	std::cout << "Delete operations to perform: " << op << "\n";
 	std::cout << "Keys to search for uniformly drawn from range [" << opDistrLow << ", " << opDistrHigh << "]\n";
 	std::cout << "Deleting...\n";
-	std::tuple<std::chrono::duration<double, std::ratio<1, 1000>>::rep, int, int> result = btree ? deleteBplustree(op) : deleteParallelBplustree(op);
-	std::chrono::duration<double, std::ratio<1, 1000>>::rep ms = std::get<0>(result);
+	std::tuple<std::chrono::duration<double, std::ratio<1, 1000000000>>::rep, int, int> result = btree ? deleteBplustree(op) : deleteParallelBplustree(op);
+	std::chrono::duration<double, std::ratio<1, 1000000000>>::rep ns = std::get<0>(result);
 	int hits = std::get<1>(result);
 	int misses = std::get<2>(result);
-	std::cout << "Delete finished in: " << ms<< " ms\n";
+	std::cout << "Delete finished in: " << ns / 1000000 << " ms\n";
 	std::cout << "Delete key hits: " << hits << "\n";
 	std::cout << "Delete key misses: " << misses << "\n";
-	std::cout << "Delete performance: " << op / (ms / 1000) << " ops\n";
+	std::cout << "Delete performance: " << op / (ns / 1000000000) << " ops\n";
 }
 
-std::tuple<std::chrono::duration<double, std::ratio<1, 1000>>::rep, int, int> Program::deleteBplustree(const int op) {
+std::tuple<std::chrono::duration<double, std::ratio<1, 1000000000>>::rep, int, int> Program::deleteBplustree(const int op) {
 	std::vector<bool> deleteResult;
 	std::chrono::steady_clock::time_point t1 = std::chrono::high_resolution_clock::now();
 	for (int i = 0; i < op; i++) {
@@ -172,7 +172,7 @@ std::tuple<std::chrono::duration<double, std::ratio<1, 1000>>::rep, int, int> Pr
 	return std::make_tuple((t2 - t1).count(), hits, op - hits);
 }
 
-std::tuple<std::chrono::duration<double, std::ratio<1, 1000>>::rep, int, int> Program::deleteParallelBplustree(const int op) {
+std::tuple<std::chrono::duration<double, std::ratio<1, 1000000000>>::rep, int, int> Program::deleteParallelBplustree(const int op) {
 	std::vector<std::vector<std::future<bool>>> deleteFutures;
 		std::chrono::steady_clock::time_point t1 = std::chrono::high_resolution_clock::now();
 		for (int i = 0; i < op; i++) {
@@ -205,20 +205,20 @@ void Program::updateTest(const int op, const int treeSize) {
 	std::cout << "Keys to update uniformly drawn from range [" << opDistrLow << ", " << opDistrHigh << "]\n";
 	std::cout << "Updates performed with single values only\n";
 	std::cout << "Updating...\n";
-	std::tuple<std::chrono::duration<double, std::ratio<1, 1000>>::rep, int, int> result = btree ? updateBplustree(op) : updateParallelBplustree(op);
-	std::chrono::duration<double, std::ratio<1, 1000>>::rep ms = std::get<0>(result);
+	std::tuple<std::chrono::duration<double, std::ratio<1, 1000000000>>::rep, int, int> result = btree ? updateBplustree(op) : updateParallelBplustree(op);
+	std::chrono::duration<double, std::ratio<1, 1000000000>>::rep ns = std::get<0>(result);
 	int hits = std::get<1>(result);
 	int misses = std::get<2>(result);
-	std::cout << "Update finished in: " << ms << " ms\n";
+	std::cout << "Update finished in: " << ns << " ms\n";
 	std::cout << "Successful updates: " << hits << "\n";
 	std::cout << "Unsuccessful updates (key not present in tree): " << misses << "\n";
-	std::cout << "Update performance: " << op / (ms / 1000) << " ops\n";
+	std::cout << "Update performance: " << op / (ns / 1000000000) << " ops\n";
 }
 
-std::tuple<std::chrono::duration<double, std::ratio<1, 1000>>::rep, int, int> Program::updateBplustree(const int op) {
+std::tuple<std::chrono::duration<double, std::ratio<1, 1000000000>>::rep, int, int> Program::updateBplustree(const int op) {
 	std::vector<bool> updateResult;
 	updateResult.reserve(op);
-	std::chrono::duration<double, std::milli> ms_double(0);
+	std::chrono::duration<double, std::nano> ns_double(0);
 	std::chrono::steady_clock::time_point t1;
 	std::chrono::steady_clock::time_point t2;
 	for (int i = 0; i < op; i++) {
@@ -227,7 +227,7 @@ std::tuple<std::chrono::duration<double, std::ratio<1, 1000>>::rep, int, int> Pr
 		t1 = std::chrono::high_resolution_clock::now();
 		updateResult.push_back(std::move(btree->update(k, v)));
 		t2 = std::chrono::high_resolution_clock::now();
-		ms_double += t2 - t1;
+		ns_double += t2 - t1;
 	}
 	std::cout << "Calculating statistics...\n";
 	int hits = 0;
@@ -236,13 +236,13 @@ std::tuple<std::chrono::duration<double, std::ratio<1, 1000>>::rep, int, int> Pr
 			hits++;
 		}
 	}
-	return std::make_tuple(ms_double.count(), hits, op - hits);
+	return std::make_tuple(ns_double.count(), hits, op - hits);
 }
 
-std::tuple<std::chrono::duration<double, std::ratio<1, 1000>>::rep, int, int> Program::updateParallelBplustree(const int op) {
+std::tuple<std::chrono::duration<double, std::ratio<1, 1000000000>>::rep, int, int> Program::updateParallelBplustree(const int op) {
 	std::vector<std::vector<std::future<bool>>> updateFutures;
 	updateFutures.reserve(op);
-	std::chrono::duration<double, std::milli> ms_double(0);
+	std::chrono::duration<double, std::nano> ns_double(0);
 	std::chrono::steady_clock::time_point t1;
 	std::chrono::steady_clock::time_point t2;
 	for (int i = 0; i < op; i++) {
@@ -251,14 +251,14 @@ std::tuple<std::chrono::duration<double, std::ratio<1, 1000>>::rep, int, int> Pr
 		t1 = std::chrono::high_resolution_clock::now();
 		updateFutures.push_back(std::move(pbtree->update(k, v)));
 		t2 = std::chrono::high_resolution_clock::now();
-		ms_double += t2 - t1;
+		ns_double += t2 - t1;
 	}
 	for (int i = 0; i < op; i++) {
 		for (int j = 0; j < updateFutures[i].size(); j++) {
 			t1 = std::chrono::high_resolution_clock::now();
 			updateFutures[i][j].wait();
 			t2 = std::chrono::high_resolution_clock::now();
-			ms_double += t2 - t1;
+			ns_double += t2 - t1;
 		}
 	}
 	std::cout << "Calculating statistics...\n";
@@ -273,7 +273,7 @@ std::tuple<std::chrono::duration<double, std::ratio<1, 1000>>::rep, int, int> Pr
 			hits++;
 		}
 	}
-	return std::make_tuple(ms_double.count(), hits, op - hits);
+	return std::make_tuple(ns_double.count(), hits, op - hits);
 }
 
 void Program::updateOrInsertTest(const int op, const int treeSize) {
@@ -287,7 +287,7 @@ void Program::updateOrInsertTest(const int op, const int treeSize) {
 	std::cout << "Updating...\n";
 	std::vector<std::vector<std::future<bool>>> updateFutures;
 	updateFutures.reserve(op);
-	std::chrono::duration<double, std::milli> ms_double(0);
+	std::chrono::duration<double, std::nano> ns_double(0);
 	std::chrono::steady_clock::time_point t1;
 	std::chrono::steady_clock::time_point t2;
 	for (int i = 0; i < op; i++) {
@@ -296,14 +296,14 @@ void Program::updateOrInsertTest(const int op, const int treeSize) {
 		t1 = std::chrono::high_resolution_clock::now();
 		updateFutures.push_back(std::move(pbtree->updateOrInsert(k, v)));
 		t2 = std::chrono::high_resolution_clock::now();
-		ms_double += t2 - t1;
+		ns_double += t2 - t1;
 	}
 	for (int i = 0; i < op; i++) {
 		for (int j = 0; j < updateFutures[i].size(); j++) {
 			t1 = std::chrono::high_resolution_clock::now();
 			updateFutures[i][j].wait();
 			t2 = std::chrono::high_resolution_clock::now();
-			ms_double += t2 - t1;
+			ns_double += t2 - t1;
 		}
 	}
 	std::cout << "Calculating statistics...\n";
@@ -325,8 +325,8 @@ void Program::updateOrInsertTest(const int op, const int treeSize) {
 		}
 	}
 	int misses = op - hits;
-	std::cout << "Update finished in: " << ms_double.count() << " ms\n";
+	std::cout << "Update finished in: " << ns_double.count() / 1000000 << " ms\n";
 	std::cout << "Successful updates: " << hits << "\n";
 	std::cout << "Unsuccessful updates leading to inserts: " << misses << "\n";
-	std::cout << "Updateorinsert performance: " << op / (ms_double.count() / 1000) << " ops\n";
+	std::cout << "Updateorinsert performance: " << op / (ns_double.count() / 1000000000) << " ops\n";
 }
