@@ -27,6 +27,7 @@ void Program::printParallelBplustreeInfo() {
 	std::cout << "---ParallelBplustree information--\n";
 	std::cout << "order: " << pbtree->getOrder() << "\n";
 	std::cout << "trees: " << pbtree->getNumTrees() << "\n";
+	std::cout << "threads: " << pbtree->getNumThreads() << "\n";
 	std::cout << "bloom: " << pbtree->areBloomFiltersUsed() << "\n";
 }
 
@@ -76,11 +77,14 @@ std::chrono::duration<double, std::ratio<1, 1000000000>>::rep Program::buildRand
 		int v = distr(gen);
 		buildFutures.push_back(std::move(pbtree->insert(k, v)));
 	}
+	std::chrono::steady_clock::time_point t2 = std::chrono::high_resolution_clock::now();
 	for(int i = 0; i < numInserts; i++) {
 		buildFutures[i].wait();
 	}
-	std::chrono::steady_clock::time_point t2 = std::chrono::high_resolution_clock::now();
-	return (t2 - t1).count();
+	std::chrono::steady_clock::time_point t3 = std::chrono::high_resolution_clock::now();
+	std::cout << "Time spent pushing: " <<  (t2 - t1).count() / 1000000 << " ms\n";
+	std::cout << "Time spent waiting: " <<  (t3 - t2).count() / 1000000 << " ms\n";
+	return (t3 - t1).count();
 };
 
 void Program::searchTest(const int op, const int treeSize, const bool show) {
