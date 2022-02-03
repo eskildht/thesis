@@ -81,7 +81,7 @@ void runProgram(Program &program, const std::string &test, const int op, const i
 		program.insertTest(op, show);
 	}
 	else if (test == "search") {
-		program.searchTest(op, treeSize, show);
+		//program.searchTest(op, treeSize, show);
 	}
 	else if (test == "update") {
 		//program.updateTest(op, treeSize, show);

@@ -1,10 +1,11 @@
 #include "parallelbplustree.hpp"
+#include <random>
 
 ParallelBplustree::ParallelBplustree(const int order, const int numThreads, const int numTrees, const bool useBloomFilters) : order(order), numThreads(numThreads), threadPool(numThreads), numTrees(numTrees), useBloomFilters(useBloomFilters), accessKey(new AccessKey) {
 	for (int i = 0; i < numTrees; i++) {
 		trees.push_back(new Bplustree(order));
-		treeLocks.push_back(new std::mutex);
-		treeNumInsertOp.push_back(0);
+		treeLocks.push_back(new std::shared_mutex);
+		treeFilterLocks.push_back(new std::shared_mutex);
 	}
 	if (useBloomFilters) {
 		bloom_parameters parameters;
@@ -19,63 +20,79 @@ ParallelBplustree::ParallelBplustree(const int order, const int numThreads, cons
 	}
 }
 
-void ParallelBplustree::threadInsert(const int key, const int value, const int treeIndex) {
-	std::scoped_lock<std::mutex> lock(*treeLocks[treeIndex]);
-	trees[treeIndex]->insert(key, value);
-}
-
-void ParallelBplustree::threadInsert(const int key, const std::vector<int> &values, const int treeIndex) {
-	std::scoped_lock<std::mutex> lock(*treeLocks[treeIndex]);
-	trees[treeIndex]->insert(key, values);
-}
-
-void ParallelBplustree::insert(const int key, const int value) {
+void ParallelBplustree::threadInsert(const int key, const int value) {
+	static thread_local std::mt19937 gen;
 	if (useBloomFilters) {
 		for (int i = 0; i < numTrees; i++) {
+			std::shared_lock<std::shared_mutex> treeFilterReadLock(*treeFilterLocks[i]);
 			if (treeFilters[i]->contains(key)) {
-				threadPool.push_task([=] { threadInsert(key, value, i); });
-				treeNumInsertOp[i]++;
+				treeFilterReadLock.unlock();
+				{
+					std::unique_lock<std::shared_mutex> treeWriteLock(*treeLocks[i]);
+					trees[i]->insert(key, value);
+				}
+				{
+					std::unique_lock<std::shared_mutex> treeFilterWriteLock(*treeFilterLocks[i]);
+					treeFilters[i]->insert(key);
+				}
 				return;
 			}
 		}
-	}
-	std::vector<int>::iterator it = std::min_element(treeNumInsertOp.begin(), treeNumInsertOp.end());
-	const int treeIndex = it - treeNumInsertOp.begin();
-	if (useBloomFilters) {
-		treeFilters[treeIndex]->insert(key);
-	}
-	threadPool.push_task([=] { threadInsert(key, value, treeIndex); });
-	treeNumInsertOp[treeIndex]++;
-	return;
-}
-
-const std::vector<int> *ParallelBplustree::threadSearch(const int key, const int treeIndex) const {
-	return trees[treeIndex]->search(key);
-}
-
-std::vector<std::future<const std::vector<int> *>> ParallelBplustree::search(const int key) {
-	std::vector<std::future<const std::vector<int> *>> result;
-	if (useBloomFilters) {
-		for (int i = 0; i < numTrees; i++) {
-			if (treeFilters[i]->contains(key)) {
-				result.push_back(threadPool.submit([=] { return threadSearch(key, i); }));
-			}
+		std::uniform_int_distribution<int> distr(0, numTrees - 1);
+		const int treeIndex	= distr(gen);
+		{
+			std::unique_lock<std::shared_mutex> treeWriteLock(*treeLocks[treeIndex]);
+			trees[treeIndex]->insert(key, value);
 		}
-		return result;
+		{
+			std::unique_lock<std::shared_mutex> treeFilterWriteLock(*treeFilterLocks[treeIndex]);
+			treeFilters[treeIndex]->insert(key);
+		}
 	}
-	for (int i = 0; i < numTrees; i++) {
-		result.push_back(threadPool.submit([=] { return threadSearch(key, i); }));
+	else {
+		std::uniform_int_distribution<int> distr(0, numTrees - 1);
+		const int treeIndex	= distr(gen);
+		std::unique_lock<std::shared_mutex> treeWriteLock(*treeLocks[treeIndex]);
+		trees[treeIndex]->insert(key, value);
 	}
-	return result;
 }
 
-bool ParallelBplustree::threadUpdate(const int key, const std::vector<int> &values, const int treeIndex) {
-	return trees[treeIndex]->update(key, values);
+//void ParallelBplustree::threadInsert(const int key, const std::vector<int> &values, const int treeIndex) {
+//	std::scoped_lock<std::mutex> lock(*treeLocks[treeIndex]);
+//	trees[treeIndex]->insert(key, values);
+//}
+
+void ParallelBplustree::insert(const int key, const int value) {
+	threadPool.push_task([=] { threadInsert(key, value); });
 }
 
-std::vector<int> *ParallelBplustree::threadSearch(const int key, const int treeIndex, AccessKey *accessKey) {
-	return trees[treeIndex]->search(key, accessKey);
-}
+//const std::vector<int> *ParallelBplustree::threadSearch(const int key, const int treeIndex) const {
+//	return trees[treeIndex]->search(key);
+//}
+
+//std::vector<std::future<const std::vector<int> *>> ParallelBplustree::search(const int key) {
+//	std::vector<std::future<const std::vector<int> *>> result;
+//	if (useBloomFilters) {
+//		for (int i = 0; i < numTrees; i++) {
+//			if (treeFilters[i]->contains(key)) {
+//				result.push_back(threadPool.submit([=] { return threadSearch(key, i); }));
+//			}
+//		}
+//		return result;
+//	}
+//	for (int i = 0; i < numTrees; i++) {
+//		result.push_back(threadPool.submit([=] { return threadSearch(key, i); }));
+//	}
+//	return result;
+//}
+//
+//bool ParallelBplustree::threadUpdate(const int key, const std::vector<int> &values, const int treeIndex) {
+//	return trees[treeIndex]->update(key, values);
+//}
+//
+//std::vector<int> *ParallelBplustree::threadSearch(const int key, const int treeIndex, AccessKey *accessKey) {
+//	return trees[treeIndex]->search(key, accessKey);
+//}
 
 //std::vector<std::future<bool>> ParallelBplustree::update(const int key, const std::vector<int> &values) {
 //	std::vector<std::future<std::vector<int> *>> candidateTreesValues;
@@ -125,18 +142,18 @@ std::vector<int> *ParallelBplustree::threadSearch(const int key, const int treeI
 //	return result;
 //}
 
-bool ParallelBplustree::threadUpdateOrInsert(const int key, const std::vector<int> &values, const int treeIndex) {
-	bool didUpdate;
-	{
-		std::scoped_lock<std::mutex> lock(*treeLocks[treeIndex]);
-		didUpdate = trees[treeIndex]->update(key, values);
-	}
-	if (!didUpdate) {
-		std::scoped_lock<std::mutex> lock(*treeLocks[treeIndex]);
-		trees[treeIndex]->insert(key, values);
-	}
-	return didUpdate;
-}
+//bool ParallelBplustree::threadUpdateOrInsert(const int key, const std::vector<int> &values, const int treeIndex) {
+//	bool didUpdate;
+//	{
+//		std::scoped_lock<std::mutex> lock(*treeLocks[treeIndex]);
+//		didUpdate = trees[treeIndex]->update(key, values);
+//	}
+//	if (!didUpdate) {
+//		std::scoped_lock<std::mutex> lock(*treeLocks[treeIndex]);
+//		trees[treeIndex]->insert(key, values);
+//	}
+//	return didUpdate;
+//}
 
 //std::vector<std::future<bool>> ParallelBplustree::updateOrInsert(const int key, const std::vector<int> &values) {
 //	std::vector<std::future<bool>> result;
@@ -173,10 +190,10 @@ bool ParallelBplustree::threadUpdateOrInsert(const int key, const std::vector<in
 //	return result;
 //}
 
-bool ParallelBplustree::threadRemove(const int key, const int treeIndex) {
-	std::scoped_lock<std::mutex> lock(*treeLocks[treeIndex]);
-	return trees[treeIndex]->remove(key);
-}
+//bool ParallelBplustree::threadRemove(const int key, const int treeIndex) {
+//	std::scoped_lock<std::mutex> lock(*treeLocks[treeIndex]);
+//	return trees[treeIndex]->remove(key);
+//}
 
 //std::vector<std::future<bool>> ParallelBplustree::remove(const int key) {
 //	std::vector<std::future<bool>> result;
@@ -195,9 +212,9 @@ bool ParallelBplustree::threadRemove(const int key, const int treeIndex) {
 //	return result;
 //}
 
-void ParallelBplustree::readjustTreeNumInsertOp() {
-	treeNumInsertOp = std::move(getTreeNumKeys());
-}
+//void ParallelBplustree::readjustTreeNumInsertOp() {
+//	treeNumInsertOp = std::move(getTreeNumKeys());
+//}
 
 std::vector<int> ParallelBplustree::getTreeNumKeys() {
 	std::vector<int> result;
