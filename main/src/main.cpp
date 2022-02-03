@@ -81,7 +81,7 @@ void runProgram(Program &program, const std::string &test, const int op, const i
 		program.insertTest(op, show);
 	}
 	else if (test == "search") {
-		//program.searchTest(op, treeSize, show);
+		program.searchTest(op, treeSize, show);
 	}
 	else if (test == "update") {
 		//program.updateTest(op, treeSize, show);
@@ -121,7 +121,7 @@ int main(int argc, char *argv[]) {
 			runProgram(program, optionsString["--test"], optionsInt["--op"], optionsInt["--tree-size"], flagsBool["--show"]);
 		}
 		else {
-			Program program(optionsInt["--order"], optionsInt["--threads"], optionsInt["--trees"], flagsBool["--bloom"], optionsInt["--op-distr-low"], optionsInt["--op-distr-high"], optionsInt["--build-distr-low"], optionsInt["--build-distr-high"]);
+			Program program(optionsInt["--order"], optionsInt["--threads"], optionsInt["--trees"], !flagsBool["--bloom-disable"], optionsInt["--op-distr-low"], optionsInt["--op-distr-high"], optionsInt["--build-distr-low"], optionsInt["--build-distr-high"]);
 			runProgram(program, optionsString["--test"], optionsInt["--op"], optionsInt["--tree-size"], flagsBool["--show"]);
 		}
 	}

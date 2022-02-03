@@ -53,24 +53,21 @@ const std::vector<int> *ParallelBplustree::threadSearch(const int key, const int
 	return trees[treeIndex]->search(key);
 }
 
-//std::vector<std::future<const std::vector<int> *>> ParallelBplustree::search(const int key) {
-//	std::vector<std::future<const std::vector<int> *>> result;
-//	// Some Bplustrees hopefully won't be searched
-//	if (useBloomFilters) {
-//		for (int i = 0; i < numTrees; i++) {
-//			if (treeFilters[i]->contains(key)) {
-//				result.push_back(threadPool.push([this](int id, const int key, const int treeIndex) { return this->threadSearch(key, treeIndex); }, key, i));
-//
-//			}
-//		}
-//		return result;
-//	}
-//	// All Bplustrees must be searched
-//	for (int i = 0; i < numTrees; i++) {
-//		result.push_back(threadPool.push([this](int id, const int key, const int treeIndex) { return this->threadSearch(key, treeIndex); }, key, i));
-//	}
-//	return result;
-//}
+std::vector<std::future<const std::vector<int> *>> ParallelBplustree::search(const int key) {
+	std::vector<std::future<const std::vector<int> *>> result;
+	if (useBloomFilters) {
+		for (int i = 0; i < numTrees; i++) {
+			if (treeFilters[i]->contains(key)) {
+				result.push_back(threadPool.submit([=] { return threadSearch(key, i); }));
+			}
+		}
+		return result;
+	}
+	for (int i = 0; i < numTrees; i++) {
+		result.push_back(threadPool.submit([=] { return threadSearch(key, i); }));
+	}
+	return result;
+}
 
 bool ParallelBplustree::threadUpdate(const int key, const std::vector<int> &values, const int treeIndex) {
 	return trees[treeIndex]->update(key, values);

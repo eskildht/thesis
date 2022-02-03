@@ -7,7 +7,7 @@ class ParallelBplustree {
 		ParallelBplustree(const int order, const int numThreads, const int numTrees, const bool useBloomFilters);
 		~ParallelBplustree();
 		void insert(const int key, const int value);
-		//std::vector<std::future<const std::vector<int> *>> search(const int key);
+		std::vector<std::future<const std::vector<int> *>> search(const int key);
 		//std::vector<std::future<bool>> update(const int key, const std::vector<int> &values);
 		//std::vector<std::future<bool>> updateOrInsert(const int key, const std::vector<int> &values);
 		//std::vector<std::future<bool>> remove(const int key);
