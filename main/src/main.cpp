@@ -75,19 +75,19 @@ std::tuple<std::map<std::string, bool>, std::map<std::string, int>, std::map<std
 void runProgram(Program &program, const std::string &test, const int op, const int treeSize, const bool show) {
 	program.printTreeInfo();
 	if (test == "delete") {
-		program.deleteTest(op, treeSize, show);
+		//program.deleteTest(op, treeSize, show);
 	}
 	else if (test == "insert") {
 		program.insertTest(op, show);
 	}
 	else if (test == "search") {
-		program.searchTest(op, treeSize, show);
+		//program.searchTest(op, treeSize, show);
 	}
 	else if (test == "update") {
-		program.updateTest(op, treeSize, show);
+		//program.updateTest(op, treeSize, show);
 	}
 	else if (test == "updateorinsert") {
-		program.updateOrInsertTest(op, treeSize, show);
+		//program.updateOrInsertTest(op, treeSize, show);
 	}
 }
 
