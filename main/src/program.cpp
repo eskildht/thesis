@@ -59,26 +59,26 @@ void Program::buildRandomTree(const int numInserts, const bool show, const bool 
 }
 
 std::chrono::duration<double, std::ratio<1, 1000000000>>::rep Program::buildRandomBplustree(const int numInserts, std::uniform_int_distribution<> &distr) {
-	std::chrono::steady_clock::time_point t1 = std::chrono::high_resolution_clock::now();
+	auto t1 = std::chrono::high_resolution_clock::now();
 	for(int i = 0; i < numInserts; i++) {
 		int k = distr(gen);
 		int v = distr(gen);
 		btree->insert(k, v);
 	}
-	std::chrono::steady_clock::time_point t2 = std::chrono::high_resolution_clock::now();
+	auto t2 = std::chrono::high_resolution_clock::now();
 	return (t2 - t1).count();
 }
 
 std::chrono::duration<double, std::ratio<1, 1000000000>>::rep Program::buildRandomParallelBplustree(const int numInserts, std::uniform_int_distribution<> &distr) {
-	std::chrono::steady_clock::time_point t1 = std::chrono::high_resolution_clock::now();
+	auto t1 = std::chrono::high_resolution_clock::now();
 	for(int i = 0; i < numInserts; i++) {
 		int k = distr(gen);
 		int v = distr(gen);
 		pbtree->insert(k, v);
 	}
-	std::chrono::steady_clock::time_point t2 = std::chrono::high_resolution_clock::now();
+	auto t2 = std::chrono::high_resolution_clock::now();
 	pbtree->waitForWorkToFinish();
-	std::chrono::steady_clock::time_point t3 = std::chrono::high_resolution_clock::now();
+	auto t3 = std::chrono::high_resolution_clock::now();
 	std::cout << "Time spent pushing: " <<  (t2 - t1).count() / 1000000 << " ms\n";
 	std::cout << "Time spent waiting: " <<  (t3 - t2).count() / 1000000 << " ms\n";
 	return (t3 - t1).count();
@@ -102,12 +102,12 @@ void Program::searchTest(const int op, const int treeSize, const bool show) {
 
 std::tuple<std::chrono::duration<double, std::ratio<1, 1000000000>>::rep, int, int> Program::searchBplustree(const int op) {
 	std::vector<const std::vector<int> *> searchResult;
-	std::chrono::steady_clock::time_point t1 = std::chrono::high_resolution_clock::now();
+	auto t1 = std::chrono::high_resolution_clock::now();
 	for (int i = 0; i < op; i++) {
 		int k = opDistr(gen);
 		searchResult.push_back(std::move(btree->search(k)));
 	}
-	std::chrono::steady_clock::time_point t2 = std::chrono::high_resolution_clock::now();
+	auto t2 = std::chrono::high_resolution_clock::now();
 	std::cout << "Calculating statistics...\n";
 	int hits = 0;
 	for (int i = 0; i < op; i++) {
@@ -123,12 +123,12 @@ std::tuple<std::chrono::duration<double, std::ratio<1, 1000000000>>::rep, int, i
 	searchFutures.reserve(op);
 	std::vector<std::vector<std::future<const std::vector<int> *>>> searchResult;
 	searchResult.reserve(op);
-	std::chrono::steady_clock::time_point t1 = std::chrono::high_resolution_clock::now();
+	auto t1 = std::chrono::high_resolution_clock::now();
 	for (int i = 0; i < op; i++) {
 		int k = opDistr(gen);
 		searchFutures.push_back(pbtree->search(k));
 	}
-	std::chrono::steady_clock::time_point t2 = std::chrono::high_resolution_clock::now();
+	auto t2 = std::chrono::high_resolution_clock::now();
 	for (int i = 0; i < op; i++) {
 		std::vector<std::future<const std::vector<int> *>> temporaryResult = searchFutures[i].get();
 		for (int j = 0; j < temporaryResult.size(); j++) {
@@ -136,7 +136,7 @@ std::tuple<std::chrono::duration<double, std::ratio<1, 1000000000>>::rep, int, i
 		}
 		searchResult.push_back(std::move(temporaryResult));
 	}
-	std::chrono::steady_clock::time_point t3 = std::chrono::high_resolution_clock::now();
+	auto t3 = std::chrono::high_resolution_clock::now();
 	std::cout << "Calculating statistics...\n";
 	int hits = 0;
 	for (int i = 0; i < op; i++) {
@@ -170,12 +170,12 @@ std::tuple<std::chrono::duration<double, std::ratio<1, 1000000000>>::rep, int, i
 //
 //std::tuple<std::chrono::duration<double, std::ratio<1, 1000000000>>::rep, int, int> Program::deleteBplustree(const int op) {
 //	std::vector<bool> deleteResult;
-//	std::chrono::steady_clock::time_point t1 = std::chrono::high_resolution_clock::now();
+//	auto t1 = std::chrono::high_resolution_clock::now();
 //	for (int i = 0; i < op; i++) {
 //		int k = opDistr(gen);
 //		deleteResult.push_back(std::move(btree->remove(k)));
 //	}
-//	std::chrono::steady_clock::time_point t2 = std::chrono::high_resolution_clock::now();
+//	auto t2 = std::chrono::high_resolution_clock::now();
 //	std::cout << "Calculating statistics...\n";
 //	int hits = 0;
 //	for (int i = 0; i < op; i++) {
@@ -189,7 +189,7 @@ std::tuple<std::chrono::duration<double, std::ratio<1, 1000000000>>::rep, int, i
 //
 //std::tuple<std::chrono::duration<double, std::ratio<1, 1000000000>>::rep, int, int> Program::deleteParallelBplustree(const int op) {
 //	std::vector<std::vector<std::future<bool>>> deleteFutures;
-//		std::chrono::steady_clock::time_point t1 = std::chrono::high_resolution_clock::now();
+//		auto t1 = std::chrono::high_resolution_clock::now();
 //		for (int i = 0; i < op; i++) {
 //			int k = opDistr(gen);
 //			deleteFutures.push_back(std::move(pbtree->remove(k)));
@@ -199,7 +199,7 @@ std::tuple<std::chrono::duration<double, std::ratio<1, 1000000000>>::rep, int, i
 //				deleteFutures[i][j].wait();
 //			}
 //		}
-//		std::chrono::steady_clock::time_point t2 = std::chrono::high_resolution_clock::now();
+//		auto t2 = std::chrono::high_resolution_clock::now();
 //		std::cout << "Calculating statistics...\n";
 //		int hits = 0;
 //		for (int i = 0; i < op; i++) {
@@ -234,8 +234,8 @@ std::tuple<std::chrono::duration<double, std::ratio<1, 1000000000>>::rep, int, i
 //	std::vector<bool> updateResult;
 //	updateResult.reserve(op);
 //	std::chrono::duration<double, std::nano> ns_double(0);
-//	std::chrono::steady_clock::time_point t1;
-//	std::chrono::steady_clock::time_point t2;
+//	auto t1;
+//	auto t2;
 //	for (int i = 0; i < op; i++) {
 //		int k = opDistr(gen);
 //		std::vector<int> v = {i};
@@ -258,8 +258,8 @@ std::tuple<std::chrono::duration<double, std::ratio<1, 1000000000>>::rep, int, i
 //	std::vector<std::vector<std::future<bool>>> updateFutures;
 //	updateFutures.reserve(op);
 //	std::chrono::duration<double, std::nano> ns_double(0);
-//	std::chrono::steady_clock::time_point t1;
-//	std::chrono::steady_clock::time_point t2;
+//	auto t1;
+//	auto t2;
 //	for (int i = 0; i < op; i++) {
 //		int k = opDistr(gen);
 //		std::vector<int> v = {i};
@@ -303,8 +303,8 @@ std::tuple<std::chrono::duration<double, std::ratio<1, 1000000000>>::rep, int, i
 //	std::vector<std::vector<std::future<bool>>> updateFutures;
 //	updateFutures.reserve(op);
 //	std::chrono::duration<double, std::nano> ns_double(0);
-//	std::chrono::steady_clock::time_point t1;
-//	std::chrono::steady_clock::time_point t2;
+//	auto t1;
+//	auto t2;
 //	for (int i = 0; i < op; i++) {
 //		int k = opDistr(gen);
 //		std::vector<int> v = {i};
