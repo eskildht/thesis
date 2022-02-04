@@ -96,7 +96,7 @@ int main(int argc, char *argv[]) {
 	try {
 		result = parseUserInput(argc, argv);
 	}
-	catch (std::basic_stringstream<char>::string_type errorMsg) {
+	catch (std::string errorMsg) {
 		std::cout << errorMsg;
 		return 0;
 	}
