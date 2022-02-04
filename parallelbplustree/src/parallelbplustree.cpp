@@ -9,8 +9,6 @@ ParallelBplustree::ParallelBplustree(const int order, const int numThreads, cons
 	}
 	if (useBloomFilters) {
 		bloom_parameters parameters;
-		// Maximum false_positive_probability set to 1 in 1000000
-		// for each filter.
 		parameters.projected_element_count = 1000000;
 		parameters.false_positive_probability = 0.000001;
 		parameters.compute_optimal_parameters();
@@ -66,25 +64,37 @@ void ParallelBplustree::insert(const int key, const int value) {
 	threadPool.push_task([=] { threadInsert(key, value); });
 }
 
-//const std::vector<int> *ParallelBplustree::threadSearch(const int key, const int treeIndex) const {
-//	return trees[treeIndex]->search(key);
-//}
+void ParallelBplustree::threadSearchCoordinator(const int key, std::promise<std::vector<std::future<const std::vector<int> *>>> *prom) {
+	std::vector<std::future<const std::vector<int> *>> result;
+	if (useBloomFilters) {
+		for (int i = 0; i < numTrees; i++) {
+			std::shared_lock<std::shared_mutex> treeFilterReadLock(*treeFilterLocks[i]);
+			if (treeFilters[i]->contains(key)) {
+				treeFilterReadLock.unlock();
+				result.push_back(threadPool.submit([=] { return threadSearch(key, i); }));
+			}
+		}
+	}
+	else {
+		for (int i = 0; i < numTrees; i++) {
+			result.push_back(threadPool.submit([=] { return threadSearch(key, i); }));
+		}
+	}
+	prom->set_value(std::move(result));
+	delete prom;
+}
 
-//std::vector<std::future<const std::vector<int> *>> ParallelBplustree::search(const int key) {
-//	std::vector<std::future<const std::vector<int> *>> result;
-//	if (useBloomFilters) {
-//		for (int i = 0; i < numTrees; i++) {
-//			if (treeFilters[i]->contains(key)) {
-//				result.push_back(threadPool.submit([=] { return threadSearch(key, i); }));
-//			}
-//		}
-//		return result;
-//	}
-//	for (int i = 0; i < numTrees; i++) {
-//		result.push_back(threadPool.submit([=] { return threadSearch(key, i); }));
-//	}
-//	return result;
-//}
+const std::vector<int> *ParallelBplustree::threadSearch(const int key, const int treeIndex) const {
+	std::shared_lock<std::shared_mutex> treeReadLock(*treeLocks[treeIndex]);
+	return trees[treeIndex]->search(key);
+}
+
+std::future<std::vector<std::future<const std::vector<int> *>>> ParallelBplustree::search(const int key) {
+	std::promise<std::vector<std::future<const std::vector<int> *>>> *prom = new std::promise<std::vector<std::future<const std::vector<int> *>>>;
+	std::future<std::vector<std::future<const std::vector<int> *>>> fut = prom->get_future();
+	threadPool.push_task([=] () mutable { threadSearchCoordinator(key, prom); });
+	return fut;
+}
 //
 //bool ParallelBplustree::threadUpdate(const int key, const std::vector<int> &values, const int treeIndex) {
 //	return trees[treeIndex]->update(key, values);
