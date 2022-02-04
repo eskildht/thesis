@@ -61,7 +61,7 @@ void ParallelBplustree::threadInsert(const int key, const int value) {
 //}
 
 void ParallelBplustree::insert(const int key, const int value) {
-	threadPool.push_task([=] { threadInsert(key, value); });
+	threadPool.push_task([=, this] { threadInsert(key, value); });
 }
 
 void ParallelBplustree::threadSearchCoordinator(const int key, std::promise<std::vector<std::future<const std::vector<int> *>>> *prom) {
@@ -71,13 +71,13 @@ void ParallelBplustree::threadSearchCoordinator(const int key, std::promise<std:
 			std::shared_lock<std::shared_mutex> treeFilterReadLock(*treeFilterLocks[i]);
 			if (treeFilters[i]->contains(key)) {
 				treeFilterReadLock.unlock();
-				result.push_back(threadPool.submit([=] { return threadSearch(key, i); }));
+				result.push_back(threadPool.submit([=, this] { return threadSearch(key, i); }));
 			}
 		}
 	}
 	else {
 		for (int i = 0; i < numTrees; i++) {
-			result.push_back(threadPool.submit([=] { return threadSearch(key, i); }));
+			result.push_back(threadPool.submit([=, this] { return threadSearch(key, i); }));
 		}
 	}
 	prom->set_value(std::move(result));
@@ -92,7 +92,7 @@ const std::vector<int> *ParallelBplustree::threadSearch(const int key, const int
 std::future<std::vector<std::future<const std::vector<int> *>>> ParallelBplustree::search(const int key) {
 	std::promise<std::vector<std::future<const std::vector<int> *>>> *prom = new std::promise<std::vector<std::future<const std::vector<int> *>>>;
 	std::future<std::vector<std::future<const std::vector<int> *>>> fut = prom->get_future();
-	threadPool.push_task([=] () mutable { threadSearchCoordinator(key, prom); });
+	threadPool.push_task([=, this] () mutable { threadSearchCoordinator(key, prom); });
 	return fut;
 }
 //
