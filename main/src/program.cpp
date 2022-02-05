@@ -31,12 +31,12 @@ void Program::printParallelBplustreeInfo() {
 	std::cout << "bloom: " << pbtree->areBloomFiltersUsed() << "\n";
 }
 
-void Program::insertTest(const int op, const bool show) {
+void Program::insertTest(const int op, const bool show, const bool batch) {
 	std::cout << "---Insert performance test---\n";
 	buildRandomTree(op, show, true);
 }
 
-void Program::buildRandomTree(const int numInserts, const bool show, const bool runAsOp) {
+void Program::buildRandomTree(const int numInserts, const bool show, const bool runAsOp, const bool batch) {
 	std::cout << "Tree to be built by " << numInserts << " inserts\n";
 	if (runAsOp) {
 		std::cout << "Key/value pairs uniformly drawn from range [" << opDistrLow << ", " << opDistrHigh << "]\n";
@@ -46,7 +46,7 @@ void Program::buildRandomTree(const int numInserts, const bool show, const bool 
 	}
 	std::uniform_int_distribution<> &distr = runAsOp ? opDistr : buildDistr;
 	std::cout << "Building...\n";
-	std::chrono::duration<double, std::ratio<1, 1000000000>>::rep ns = btree ? buildRandomBplustree(numInserts, distr) : buildRandomParallelBplustree(numInserts, distr);
+	std::chrono::duration<double, std::ratio<1, 1000000000>>::rep ns = btree ? buildRandomBplustree(numInserts, distr) : buildRandomParallelBplustree(numInserts, distr, batch);
 	std::cout << "Build finished in: " << ns / 1000000 << " ms\n";
 	std::cout << "Build performance: " << numInserts / (ns / 1000000000) << " ops\n";
 	if (show) {
@@ -69,18 +69,35 @@ std::chrono::duration<double, std::ratio<1, 1000000000>>::rep Program::buildRand
 	return (t2 - t1).count();
 }
 
-std::chrono::duration<double, std::ratio<1, 1000000000>>::rep Program::buildRandomParallelBplustree(const int numInserts, std::uniform_int_distribution<> &distr) {
+std::chrono::duration<double, std::ratio<1, 1000000000>>::rep Program::buildRandomParallelBplustree(const int numInserts, std::uniform_int_distribution<> &distr, const bool batch) {
 	auto t1 = std::chrono::high_resolution_clock::now();
-	for(int i = 0; i < numInserts; i++) {
-		int k = distr(gen);
-		int v = distr(gen);
-		pbtree->insert(k, v);
-	}
 	auto t2 = std::chrono::high_resolution_clock::now();
+	if (batch) {
+		std::vector<int> keys;
+		std::vector<int> values;
+		keys.reserve(numInserts);
+		values.reserve(numInserts);
+		for(int i = 0; i < numInserts; i++) {
+			keys.push_back(distr(gen));
+			values.push_back(distr(gen));
+		}
+		t1 = std::chrono::high_resolution_clock::now();
+		pbtree->insert(keys, values);
+		t2 = std::chrono::high_resolution_clock::now();
+	}
+	else {
+		t1 = std::chrono::high_resolution_clock::now();
+		for(int i = 0; i < numInserts; i++) {
+			int k = distr(gen);
+			int v = distr(gen);
+			pbtree->insert(k, v);
+		}
+		t2 = std::chrono::high_resolution_clock::now();
+	}
 	pbtree->waitForWorkToFinish();
 	auto t3 = std::chrono::high_resolution_clock::now();
-	std::cout << "Time spent pushing: " <<  (t2 - t1).count() / 1000000 << " ms\n";
-	std::cout << "Time spent waiting: " <<  (t3 - t2).count() / 1000000 << " ms\n";
+	std::cout << "Time spent pushing tasks to thread pool: " <<  (t2 - t1).count() / 1000000 << " ms\n";
+	std::cout << "Time spent waiting for work to finish: " <<  (t3 - t2).count() / 1000000 << " ms\n";
 	return (t3 - t1).count();
 };
 

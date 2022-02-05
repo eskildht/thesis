@@ -64,6 +64,31 @@ void ParallelBplustree::insert(const int key, const int value) {
 	threadPool.push_task([=, this] { threadInsert(key, value); });
 }
 
+
+void ParallelBplustree::threadInsert(std::vector<int>::iterator keysSplitBegin, std::vector<int>::iterator keysSplitEnd, std::vector<int>::iterator valuesSplitBegin) {
+	for(std::vector<int>::iterator keysSplitIt = keysSplitBegin; keysSplitIt != keysSplitEnd; keysSplitIt++, valuesSplitBegin++) {
+		threadInsert(*keysSplitIt, *valuesSplitBegin);
+	}
+}
+
+void ParallelBplustree::insert(std::vector<int> &keys, std::vector<int> &values)
+{
+	if (keys.size() < numThreads) {
+		throw "Not enough pairs passed, use insert(const int key, const int value) instead\n";
+	}
+	else if (keys.size() != values.size()) {
+		throw "keys.size() and values.size() must be equal\n";
+	}
+	std::vector<int>::iterator keysIt = keys.begin();
+	std::vector<int>::iterator valuesIt = values.begin();
+	const size_t splitSize = keys.size() / numThreads;
+	for (int i = 0; i < (numThreads - 1); i++) {
+		threadPool.push_task([=, this] { threadInsert(keysIt + i*splitSize, keysIt + (i+1)*splitSize, valuesIt + i*splitSize); });
+	}
+	std::vector<int>::iterator keysItEnd = keys.end();
+	threadPool.push_task([=, this] { threadInsert(keysIt + (numThreads - 1)*splitSize, keysItEnd, valuesIt + (numThreads - 1)*splitSize); });
+}
+
 void ParallelBplustree::threadSearchCoordinator(const int key, std::promise<std::vector<std::future<const std::vector<int> *>>> *prom) {
 	std::vector<std::future<const std::vector<int> *>> result;
 	if (useBloomFilters) {
