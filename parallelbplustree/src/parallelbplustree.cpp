@@ -301,12 +301,12 @@ void ParallelBplustree::show() {
 }
 
 ParallelBplustree::~ParallelBplustree() {
-	//threadPool.stop();
 	for (int i = 0; i < numTrees; i++) {
 		delete trees[i];
 		delete treeLocks[i];
 		if (useBloomFilters) {
 			delete treeFilters[i];
+			delete treeFilterLocks[i];
 		}
 	}
 }
