@@ -246,27 +246,37 @@ std::future<std::vector<std::future<const std::vector<int> *>>> ParallelBplustre
 //	return result;
 //}
 
-//bool ParallelBplustree::threadRemove(const int key, const int treeIndex) {
-//	std::scoped_lock<std::mutex> lock(*treeLocks[treeIndex]);
-//	return trees[treeIndex]->remove(key);
-//}
+bool ParallelBplustree::threadRemove(const int key, const int treeIndex) {
+	std::unique_lock<std::shared_mutex> treeWriteLock(*treeLocks[treeIndex]);
+	return trees[treeIndex]->remove(key);
+}
 
-//std::vector<std::future<bool>> ParallelBplustree::remove(const int key) {
-//	std::vector<std::future<bool>> result;
-//	if (useBloomFilters) {
-//		for (int i = 0; i < numTrees; i++) {
-//			if (treeFilters[i]->contains(key)) {
-//				result.push_back(threadPool.push([this](int id, const int key, const int treeIndex) { return this->threadRemove(key, treeIndex); }, key, i));
-//				treeNumInsertOp[i]--;
-//			}
-//		}
-//		return result;
-//	}
-//	for (int i = 0; i < numTrees; i++) {
-//		result.push_back(threadPool.push([this](int id, const int key, const int treeIndex) { return this->threadRemove(key, treeIndex); }, key, i));
-//	}
-//	return result;
-//}
+void ParallelBplustree::threadRemoveCoordinator(const int key, std::promise<std::vector<std::future<bool>>> *prom) {
+	std::vector<std::future<bool>> result;
+	if (useBloomFilters) {
+		for (int i = 0; i < numTrees; i++) {
+			std::shared_lock<std::shared_mutex> treeFilterReadLock(*treeFilterLocks[i]);
+			if (treeFilters[i]->contains(key)) {
+				treeFilterReadLock.unlock();
+				result.push_back(threadPool.submit([=, this] { return threadRemove(key, i); }));
+			}
+		}
+	}
+	else {
+		for (int i = 0; i < numTrees; i++) {
+			result.push_back(threadPool.submit([=, this] { return threadRemove(key, i); }));
+		}
+	}
+	prom->set_value(std::move(result));
+	delete prom;
+}
+
+std::future<std::vector<std::future<bool>>> ParallelBplustree::remove(const int key) {
+	std::promise<std::vector<std::future<bool>>> *prom = new std::promise<std::vector<std::future<bool>>>;
+	std::future<std::vector<std::future<bool>>> fut = prom->get_future();
+	threadPool.push_task([=, this] () mutable { threadRemoveCoordinator(key, prom); });
+	return fut;
+}
 
 //void ParallelBplustree::readjustTreeNumInsertOp() {
 //	treeNumInsertOp = std::move(getTreeNumKeys());

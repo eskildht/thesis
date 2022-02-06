@@ -77,7 +77,7 @@ std::tuple<std::map<std::string, bool>, std::map<std::string, int>, std::map<std
 void runProgram(Program &program, const std::string &test, const int op, const int treeSize, const bool show, const bool batch) {
 	program.printTreeInfo();
 	if (test == "delete") {
-		//program.deleteTest(op, treeSize, show);
+		program.deleteTest(op, treeSize, show);
 	}
 	else if (test == "insert") {
 		program.insertTest(op, show, batch);

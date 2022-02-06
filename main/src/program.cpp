@@ -164,71 +164,79 @@ std::tuple<std::chrono::duration<double, std::ratio<1, 1000000000>>::rep, int, i
 			}
 		}
 	}
-	std::cout << "Time spent pushing: " <<  (t2 - t1).count() / 1000000 << " ms\n";
-	std::cout << "Time spent waiting: " <<  (t3 - t2).count() / 1000000 << " ms\n";
+	std::cout << "Time spent pushing tasks to thread pool: " <<  (t2 - t1).count() / 1000000 << " ms\n";
+	std::cout << "Time spent waiting for work to finish: " <<  (t3 - t2).count() / 1000000 << " ms\n";
 	return std::make_tuple((t3 - t1).count(), hits, op - hits);
 };
 
-//void Program::deleteTest(const int op, const int treeSize, const bool show) {
-//	std::cout << "---Delete performance test---\n";
-//	buildRandomTree(treeSize, show);
-//	std::cout << "Delete operations to perform: " << op << "\n";
-//	std::cout << "Keys to search for uniformly drawn from range [" << opDistrLow << ", " << opDistrHigh << "]\n";
-//	std::cout << "Deleting...\n";
-//	std::tuple<std::chrono::duration<double, std::ratio<1, 1000000000>>::rep, int, int> result = btree ? deleteBplustree(op) : deleteParallelBplustree(op);
-//	std::chrono::duration<double, std::ratio<1, 1000000000>>::rep ns = std::get<0>(result);
-//	int hits = std::get<1>(result);
-//	int misses = std::get<2>(result);
-//	std::cout << "Delete finished in: " << ns / 1000000 << " ms\n";
-//	std::cout << "Delete key hits: " << hits << "\n";
-//	std::cout << "Delete key misses: " << misses << "\n";
-//	std::cout << "Delete performance: " << op / (ns / 1000000000) << " ops\n";
-//}
-//
-//std::tuple<std::chrono::duration<double, std::ratio<1, 1000000000>>::rep, int, int> Program::deleteBplustree(const int op) {
-//	std::vector<bool> deleteResult;
-//	auto t1 = std::chrono::high_resolution_clock::now();
-//	for (int i = 0; i < op; i++) {
-//		int k = opDistr(gen);
-//		deleteResult.push_back(std::move(btree->remove(k)));
-//	}
-//	auto t2 = std::chrono::high_resolution_clock::now();
-//	std::cout << "Calculating statistics...\n";
-//	int hits = 0;
-//	for (int i = 0; i < op; i++) {
-//		if (deleteResult[i]) {
-//			hits++;
-//			break;
-//		}
-//	}
-//	return std::make_tuple((t2 - t1).count(), hits, op - hits);
-//}
-//
-//std::tuple<std::chrono::duration<double, std::ratio<1, 1000000000>>::rep, int, int> Program::deleteParallelBplustree(const int op) {
-//	std::vector<std::vector<std::future<bool>>> deleteFutures;
-//		auto t1 = std::chrono::high_resolution_clock::now();
-//		for (int i = 0; i < op; i++) {
-//			int k = opDistr(gen);
-//			deleteFutures.push_back(std::move(pbtree->remove(k)));
-//		}
-//		for (int i = 0; i < op; i++) {
-//			for (int j = 0; j < deleteFutures[i].size(); j++) {
-//				deleteFutures[i][j].wait();
-//			}
-//		}
-//		auto t2 = std::chrono::high_resolution_clock::now();
-//		std::cout << "Calculating statistics...\n";
-//		int hits = 0;
-//		for (int i = 0; i < op; i++) {
-//			for (int j = 0; j < deleteFutures[i].size(); j++) {
-//				if (deleteFutures[i][j].get()) {
-//					hits++;
-//					break;
-//				}
-//			}
-//		}
-//		return std::make_tuple((t2 - t1).count(), hits, op - hits);
-//}
+void Program::deleteTest(const int op, const int treeSize, const bool show) {
+	std::cout << "---Delete performance test---\n";
+	buildRandomTree(treeSize, show);
+	std::cout << "Delete operations to perform: " << op << "\n";
+	std::cout << "Keys to search for uniformly drawn from range [" << opDistrLow << ", " << opDistrHigh << "]\n";
+	std::cout << "Deleting...\n";
+	std::tuple<std::chrono::duration<double, std::ratio<1, 1000000000>>::rep, int, int> result = btree ? deleteBplustree(op) : deleteParallelBplustree(op);
+	std::chrono::duration<double, std::ratio<1, 1000000000>>::rep ns = std::get<0>(result);
+	int hits = std::get<1>(result);
+	int misses = std::get<2>(result);
+	std::cout << "Delete finished in: " << ns / 1000000 << " ms\n";
+	std::cout << "Delete key hits: " << hits << "\n";
+	std::cout << "Delete key misses: " << misses << "\n";
+	std::cout << "Delete performance: " << op / (ns / 1000000000) << " ops\n";
+}
+
+std::tuple<std::chrono::duration<double, std::ratio<1, 1000000000>>::rep, int, int> Program::deleteBplustree(const int op) {
+	std::vector<bool> deleteResult;
+	deleteResult.reserve(op);
+	auto t1 = std::chrono::high_resolution_clock::now();
+	for (int i = 0; i < op; i++) {
+		int k = opDistr(gen);
+		deleteResult.push_back(std::move(btree->remove(k)));
+	}
+	auto t2 = std::chrono::high_resolution_clock::now();
+	std::cout << "Calculating statistics...\n";
+	int hits = 0;
+	for (int i = 0; i < op; i++) {
+		if (deleteResult[i]) {
+			hits++;
+		}
+	}
+	return std::make_tuple((t2 - t1).count(), hits, op - hits);
+}
+
+std::tuple<std::chrono::duration<double, std::ratio<1, 1000000000>>::rep, int, int> Program::deleteParallelBplustree(const int op) {
+	std::vector<std::future<std::vector<std::future<bool>>>> deleteFutures;
+		deleteFutures.reserve(op);
+		std::vector<std::vector<std::future<bool>>> deleteResult;
+		deleteResult.reserve(op);
+		auto t1 = std::chrono::high_resolution_clock::now();
+		for (int i = 0; i < op; i++) {
+			int k = opDistr(gen);
+			deleteFutures.push_back(pbtree->remove(k));
+		}
+		auto t2 = std::chrono::high_resolution_clock::now();
+		for (int i = 0; i < op; i++) {
+			std::vector<std::future<bool>> temporaryResult = deleteFutures[i].get();
+			for (int j = 0; j < temporaryResult.size(); j++) {
+				temporaryResult[j].wait();
+			}
+			deleteResult.push_back(std::move(temporaryResult));
+		}
+		auto t3 = std::chrono::high_resolution_clock::now();
+		std::cout << "Calculating statistics...\n";
+		int hits = 0;
+		for (int i = 0; i < op; i++) {
+			for (int j = 0; j < deleteResult[i].size(); j++) {
+				if (deleteResult[i][j].get()) {
+					hits++;
+					break;
+				}
+			}
+		}
+	std::cout << "Time spent pushing tasks to thread pool: " <<  (t2 - t1).count() / 1000000 << " ms\n";
+	std::cout << "Time spent waiting for work to finish: " <<  (t3 - t2).count() / 1000000 << " ms\n";
+		return std::make_tuple((t3 - t1).count(), hits, op - hits);
+}
 //
 //void Program::updateTest(const int op, const int treeSize, const bool show) {
 //	std::cout << "---Update performance test---\n";

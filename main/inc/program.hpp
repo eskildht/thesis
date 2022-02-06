@@ -8,7 +8,7 @@ class Program {
 		void printTreeInfo();
 		void buildRandomTree(const int numInserts, const bool show = false, const bool runAsOp = false, const bool batch = false);
 		void searchTest(const int op, const int treeSize, const bool show);
-		//void deleteTest(const int op, const int treeSize, const bool show);
+		void deleteTest(const int op, const int treeSize, const bool show);
 		void insertTest(const int op, const bool show, const bool batch);
 		//void updateTest(const int op, const int treeSize, const bool show);
 		//void updateOrInsertTest(const int op, const int treeSize, const bool show);
@@ -29,8 +29,8 @@ class Program {
 		std::chrono::duration<double, std::ratio<1, 1000000000>>::rep buildRandomParallelBplustree(const int numInserts, std::uniform_int_distribution<> &distr, const bool batch);
 		std::tuple<std::chrono::duration<double, std::ratio<1, 1000000000>>::rep, int, int> searchBplustree(const int op);
 		std::tuple<std::chrono::duration<double, std::ratio<1, 1000000000>>::rep, int, int> searchParallelBplustree(const int op);
-		//std::tuple<std::chrono::duration<double, std::ratio<1, 1000000000>>::rep, int, int> deleteBplustree(const int op);
-		//std::tuple<std::chrono::duration<double, std::ratio<1, 1000000000>>::rep, int, int> deleteParallelBplustree(const int op);
+		std::tuple<std::chrono::duration<double, std::ratio<1, 1000000000>>::rep, int, int> deleteBplustree(const int op);
+		std::tuple<std::chrono::duration<double, std::ratio<1, 1000000000>>::rep, int, int> deleteParallelBplustree(const int op);
 		//std::tuple<std::chrono::duration<double, std::ratio<1, 1000000000>>::rep, int, int> updateBplustree(const int op);
 		//std::tuple<std::chrono::duration<double, std::ratio<1, 1000000000>>::rep, int, int> updateParallelBplustree(const int op);
 };
