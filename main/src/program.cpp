@@ -72,9 +72,9 @@ std::chrono::duration<double, std::ratio<1, 1000000000>>::rep Program::buildRand
 std::chrono::duration<double, std::ratio<1, 1000000000>>::rep Program::buildRandomParallelBplustree(const int numInserts, std::uniform_int_distribution<> &distr, const bool batch) {
 	auto t1 = std::chrono::high_resolution_clock::now();
 	auto t2 = std::chrono::high_resolution_clock::now();
+	std::vector<int> keys;
+	std::vector<int> values;
 	if (batch) {
-		std::vector<int> keys;
-		std::vector<int> values;
 		keys.reserve(numInserts);
 		values.reserve(numInserts);
 		for(int i = 0; i < numInserts; i++) {

@@ -71,8 +71,7 @@ void ParallelBplustree::threadInsert(std::vector<int>::iterator keysSplitBegin, 
 	}
 }
 
-void ParallelBplustree::insert(std::vector<int> &keys, std::vector<int> &values)
-{
+void ParallelBplustree::insert(std::vector<int> &keys, std::vector<int> &values) {
 	if (keys.size() < numThreads) {
 		throw "Not enough pairs passed, use insert(const int key, const int value) instead\n";
 	}
