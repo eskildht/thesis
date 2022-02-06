@@ -33,7 +33,6 @@ class ParallelBplustree {
 		std::vector<bloom_filter *> treeFilters;
 		std::vector<std::shared_mutex *> treeFilterLocks;
 		thread_pool threadPool;
-		AccessKey *accessKey;
 		void threadInsert(const int key, const int value);
 		void threadInsert(std::vector<int>::iterator keysSplitBegin, std::vector<int>::iterator keysSplitEnd, std::vector<int>::iterator valuesSplitBegin, const int treeIndex = -1);
 		const std::vector<int> *threadSearch(const int key, const int treeIndex) const;
