@@ -19,7 +19,7 @@ void printHelpInfo() {
 	std::cout << "\t--op-distr-high <num>       " << "Highest possible key value during test operation [default: 1000000]\n";
 	std::cout << "\t--op-distr-low <num>        " << "Lowest possible key value during test operation [default: 1]\n";
 	std::cout << "\t--order <num>               " << "Order of the Bplustree(s) [default: 5]\n";
-	std::cout << "\t--test <test>               " << "The test to carry out [default: ] [possible values: delete, insert, search, update, updateorinsert]\n";
+	std::cout << "\t--test <test>               " << "The test to carry out [default: ] [possible values: delete, insert, search, update]\n";
 	std::cout << "\t--threads <num>             " << "Number of threads to use in the thread pool if --tree has value parallel [default: std::thread::hardware_concurrency()]\n";
 	std::cout << "\t--tree <type>               " << "The tree data structure to create [default: parallel] [possible values: basic, parallel]\n";
 	std::cout << "\t--tree-size <num>           " << "The number of inserts to do during tree build (overridden by --op if --test has value insert) [default: 1000000]\n";
@@ -49,7 +49,7 @@ std::tuple<std::map<std::string, bool>, std::map<std::string, int>, std::map<std
 		{"--tree", "parallel"}
 	};
 	std::map<std::string, std::vector<std::string>> optionsStringPossibleValues = {
-		{"--test", {"delete", "insert", "search", "update", "updateorinsert"}},
+		{"--test", {"delete", "insert", "search", "update"}},
 		{"--tree", {"basic", "parallel"}}
 	};
 	for (int i = 1; i < argc; i++) {
@@ -88,9 +88,6 @@ void runProgram(Program &program, const std::string &test, const int op, const i
 	else if (test == "update") {
 		program.updateTest(op, treeSize, show);
 	}
-	else if (test == "updateorinsert") {
-		//program.updateOrInsertTest(op, treeSize, show);
-	}
 }
 
 int main(int argc, char *argv[]) {
@@ -114,7 +111,7 @@ int main(int argc, char *argv[]) {
 		return 0;
 	}
 	else if (optionsString["--test"] == "") {
-		std::cout << "Test to run must be specified using --test option [possible values: delete, insert, search, update, updateorinsert]\n";
+		std::cout << "Test to run must be specified using --test option [possible values: delete, insert, search, update]\n";
 		return 0;
 	}
 	else {
