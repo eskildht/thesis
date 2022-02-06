@@ -255,7 +255,7 @@ std::chrono::duration<double, std::ratio<1, 1000000000>>::rep Program::updateBpl
 	for (int i = 0; i < op; i++) {
 		int k = opDistr(gen);
 		std::vector<int> v = {i};
-		btree->update(k, v);
+		btree->update(k, v, true);
 	}
 	auto t2 = std::chrono::high_resolution_clock::now();
 	return (t2 - t1).count();
