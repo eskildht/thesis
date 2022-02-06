@@ -33,7 +33,7 @@ void Program::printParallelBplustreeInfo() {
 
 void Program::insertTest(const int op, const bool show, const bool batch) {
 	std::cout << "---Insert performance test---\n";
-	buildRandomTree(op, show, true);
+	buildRandomTree(op, show, true, batch);
 }
 
 void Program::buildRandomTree(const int numInserts, const bool show, const bool runAsOp, const bool batch) {
