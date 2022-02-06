@@ -316,3 +316,11 @@ int ParallelBplustree::getNumTrees() {
 bool ParallelBplustree::areBloomFiltersUsed() {
 	return useBloomFilters;
 }
+
+void ParallelBplustree::pauseThreadPool() {
+	threadPool.paused = true;
+}
+
+void ParallelBplustree::resumeThreadPool() {
+	threadPool.paused = false;
+}

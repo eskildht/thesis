@@ -21,6 +21,8 @@ class ParallelBplustree {
 		int getNumThreads();
 		int getNumTrees();
 		bool areBloomFiltersUsed();
+		void pauseThreadPool();
+		void resumeThreadPool();
 
 	private:
 		const int order;
