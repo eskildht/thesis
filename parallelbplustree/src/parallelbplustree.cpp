@@ -1,7 +1,7 @@
 #include "parallelbplustree.hpp"
 #include <random>
 
-ParallelBplustree::ParallelBplustree(const int order, const int numThreads, const int numTrees, const bool useBloomFilters) : order(order), numThreads(numThreads), threadPool(numThreads), numTrees(numTrees), useBloomFilters(useBloomFilters), accessKey(new AccessKey) {
+ParallelBplustree::ParallelBplustree(const int order, const int numThreads, const int numTrees, const bool useBloomFilters) : order(order), numThreads(numThreads), threadPool(numThreads), numTrees(numTrees), useBloomFilters(useBloomFilters) {
 	for (int i = 0; i < numTrees; i++) {
 		trees.push_back(new Bplustree(order));
 		treeLocks.push_back(new std::shared_mutex);
