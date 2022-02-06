@@ -182,6 +182,10 @@ void ParallelBplustree::threadUpdateCoordinator(const int key, const std::vector
 	}
 }
 
+void ParallelBplustree::update(const int key, const std::vector<int> &values) {
+	threadPool.push_task([=, &values, this] { threadUpdateCoordinator(key, values); });
+}
+
 //std::vector<std::future<bool>> ParallelBplustree::update(const int key, const std::vector<int> &values) {
 //	std::vector<std::future<std::vector<int> *>> candidateTreesValues;
 //	std::vector<int> candidateTreesIndexes;
