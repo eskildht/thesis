@@ -276,7 +276,10 @@ std::chrono::duration<double, std::ratio<1, 1000000000>>::rep Program::updatePar
 	for (int i = 0; i < op; i++) {
 		pbtree->update(keys[i], values[i]);
 	}
-	pbtree->waitForWorkToFinish();
 	auto t2 = std::chrono::high_resolution_clock::now();
-	return (t2 - t1).count();
+	pbtree->waitForWorkToFinish();
+	auto t3 = std::chrono::high_resolution_clock::now();
+	std::cout << "Time spent pushing tasks to thread pool: " <<  (t2 - t1).count() / 1000000 << " ms\n";
+	std::cout << "Time spent waiting for work to finish: " <<  (t3 - t2).count() / 1000000 << " ms\n";
+	return (t3 - t1).count();
 }
