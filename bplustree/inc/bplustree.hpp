@@ -7,13 +7,6 @@ class Node;
 class InternalNode;
 class LeafNode;
 
-class AccessKey {
-	public:
-		friend class ParallelBplustree;
-	private:
-		AccessKey() {};
-};
-
 class Bplustree {
 	public:
 		Bplustree(const int order);
@@ -21,9 +14,8 @@ class Bplustree {
 		int getOrder();
 		void insert(const int key, const int value);
 		void insert(const int key, const std::vector<int> &values);
-		bool update(const int key, const std::vector<int> &values);
+		bool update(const int key, const std::vector<int> &values, const bool insertIfNotFound = false);
 		const std::vector<int> *search(const int key);
-		std::vector<int> *search(const int key, AccessKey *accessKey);
 		std::map<int, std::vector<int>> scan(const int start, const int end);
 		std::map<int, std::vector<int>> scanFull();
 		bool remove(const int key);

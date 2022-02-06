@@ -53,48 +53,91 @@ void Bplustree::insert(const int key, const int value) {
 
 void Bplustree::insert(const int key, const std::vector<int> &values) {
 	std::stack<Node *> path;
-		findSearchPath(key, root, &path);
-		LeafNode *leaf = static_cast<LeafNode *>(path.top());
+	findSearchPath(key, root, &path);
+	LeafNode *leaf = static_cast<LeafNode *>(path.top());
+	path.pop();
+	leaf->insert(key, values);
+	if (leaf->getKeys()->size() == order) {
+		int *keyToParent = new int;
+		Node *right = leaf->split(keyToParent);
+		if (path.empty()) {
+			InternalNode *newRoot = new InternalNode();
+			newRoot->insert(*keyToParent, leaf, right);
+			root = newRoot;
+			return;
+		}
+		InternalNode *internal = static_cast<InternalNode *>(path.top());
 		path.pop();
-		leaf->insert(key, values);
-		if (leaf->getKeys()->size() == order) {
-			int *keyToParent = new int;
-			Node *right = leaf->split(keyToParent);
-			if (path.empty()) {
+		internal->insert(*keyToParent, right);
+		while (internal->getKeys()->size() == order) {
+			right = internal->split(keyToParent);
+			if (!path.empty()) {
+				internal = static_cast<InternalNode *>(path.top());
+				path.pop();
+				internal->insert(*keyToParent, right);
+			}
+			else {
 				InternalNode *newRoot = new InternalNode();
-				newRoot->insert(*keyToParent, leaf, right);
+				newRoot->insert(*keyToParent, internal, right);
 				root = newRoot;
 				return;
 			}
-			InternalNode *internal = static_cast<InternalNode *>(path.top());
-			path.pop();
-			internal->insert(*keyToParent, right);
-			while (internal->getKeys()->size() == order) {
-				right = internal->split(keyToParent);
-				if (!path.empty()) {
-					internal = static_cast<InternalNode *>(path.top());
-					path.pop();
-					internal->insert(*keyToParent, right);
-				}
-				else {
-					InternalNode *newRoot = new InternalNode();
-					newRoot->insert(*keyToParent, internal, right);
-					root = newRoot;
-					return;
-				}
-			}
-			delete keyToParent;
 		}
-		else {
-			return;
-		}
+		delete keyToParent;
+	}
+	else {
+		return;
+	}
 }
 
-bool Bplustree::update(const int key, const std::vector<int> &values) {
+bool Bplustree::update(const int key, const std::vector<int> &values, const bool insertIfNotFound) {
 	std::stack<Node *> path;
 	findSearchPath(key, root, &path);
 	LeafNode *leaf = static_cast<LeafNode *>(path.top());
-	return leaf->update(key, values);
+	if (insertIfNotFound) {
+		if (leaf->update(key, values)) {
+			return true;
+		}
+		else {
+			path.pop();
+			leaf->insert(key, values);
+			if (leaf->getKeys()->size() == order) {
+				int *keyToParent = new int;
+				Node *right = leaf->split(keyToParent);
+				if (path.empty()) {
+					InternalNode *newRoot = new InternalNode();
+					newRoot->insert(*keyToParent, leaf, right);
+					root = newRoot;
+					return true;
+				}
+				InternalNode *internal = static_cast<InternalNode *>(path.top());
+				path.pop();
+				internal->insert(*keyToParent, right);
+				while (internal->getKeys()->size() == order) {
+					right = internal->split(keyToParent);
+					if (!path.empty()) {
+						internal = static_cast<InternalNode *>(path.top());
+						path.pop();
+						internal->insert(*keyToParent, right);
+					}
+					else {
+						InternalNode *newRoot = new InternalNode();
+						newRoot->insert(*keyToParent, internal, right);
+						root = newRoot;
+						return true;
+					}
+				}
+				delete keyToParent;
+			}
+			else {
+				return true;
+			}
+		}
+	}
+	else {
+		return leaf->update(key, values);
+	}
+	return true;
 }
 
 void Bplustree::findSearchPath(const int key, Node *node, std::stack<Node *> *path) {
@@ -127,13 +170,6 @@ void Bplustree::findSearchPath(const int key, Node *node, std::stack<Node *> *pa
 }
 
 const std::vector<int> *Bplustree::search(const int key) {
-	std::stack<Node *> path;
-	findSearchPath(key, root, &path);
-	LeafNode *leaf = static_cast<LeafNode *>(path.top());
-	return leaf->getValues(key);
-}
-
-std::vector<int> *Bplustree::search(const int key, AccessKey *accessKey) {
 	std::stack<Node *> path;
 	findSearchPath(key, root, &path);
 	LeafNode *leaf = static_cast<LeafNode *>(path.top());
