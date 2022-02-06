@@ -8,7 +8,31 @@ ifeq ($(UNAME), Linux)
 endif
 
 
-all: debug optimized
+# OPTIMIZED
+optimized: main_optimized.o program_optimized.o node_optimized.o internalnode_optimized.o leafnode_optimized.o bplustree_optimized.o parallelbplustree_optimized.o
+	g++ $(libinc) main_optimized.o program_optimized.o node_optimized.o internalnode_optimized.o leafnode_optimized.o bplustree_optimized.o parallelbplustree_optimized.o -o optimized -std=$(std)
+	@echo "Optimized build compiled and linked"
+
+main_optimized.o: ../main/src/main.cpp
+	g++ -o main_optimized.o -c ../main/src/main.cpp -I ../main/inc -I ../bplustree/inc -I ../parallelbplustree/inc -std=$(std) -O2
+
+program_optimized.o: ../main/src/program.cpp ../main/inc/program.hpp
+	g++ -o program_optimized.o -c ../main/src/program.cpp -I ../main/inc -I ../bplustree/inc -I ../parallelbplustree/inc -std=$(std) -O2
+
+node_optimized.o: ../bplustree/src/node.cpp ../bplustree/inc/node.hpp
+	g++ -o node_optimized.o -c ../bplustree/src/node.cpp -I ../bplustree/inc -std=$(std) -O2
+
+internalnode_optimized.o: ../bplustree/src/internalnode.cpp ../bplustree/inc/internalnode.hpp
+	g++ -o internalnode_optimized.o -c ../bplustree/src/internalnode.cpp -I ../bplustree/inc -std=$(std) -O2
+
+leafnode_optimized.o: ../bplustree/src/leafnode.cpp ../bplustree/inc/leafnode.hpp
+	g++ -o leafnode_optimized.o -c ../bplustree/src/leafnode.cpp -I ../bplustree/inc -std=$(std) -O2
+
+bplustree_optimized.o: ../bplustree/src/bplustree.cpp ../bplustree/inc/bplustree.hpp
+	g++ -o bplustree_optimized.o -c ../bplustree/src/bplustree.cpp -I ../bplustree/inc -std=$(std) -O2
+
+parallelbplustree_optimized.o: ../parallelbplustree/src/parallelbplustree.cpp ../parallelbplustree/inc/parallelbplustree.hpp
+	g++ -o parallelbplustree_optimized.o -c ../parallelbplustree/src/parallelbplustree.cpp -I ../bplustree/inc -I ../parallelbplustree/inc -std=$(std) -O2
 
 
 # DEBUG
@@ -39,31 +63,8 @@ parallelbplustree_debug.o: ../parallelbplustree/src/parallelbplustree.cpp ../par
 	g++ -o parallelbplustree_debug.o -c ../parallelbplustree/src/parallelbplustree.cpp -I ../bplustree/inc -I ../parallelbplustree/inc -std=$(std) -g
 
 
-# OPTIMIZED
-optimized: main_optimized.o program_optimized.o node_optimized.o internalnode_optimized.o leafnode_optimized.o bplustree_optimized.o parallelbplustree_optimized.o
-	g++ $(libinc) main_optimized.o program_optimized.o node_optimized.o internalnode_optimized.o leafnode_optimized.o bplustree_optimized.o parallelbplustree_optimized.o -o optimized -std=$(std)
-	@echo "Optimized build compiled and linked"
-
-main_optimized.o: ../main/src/main.cpp
-	g++ -o main_optimized.o -c ../main/src/main.cpp -I ../main/inc -I ../bplustree/inc -I ../parallelbplustree/inc -std=$(std) -O2
-
-program_optimized.o: ../main/src/program.cpp ../main/inc/program.hpp
-	g++ -o program_optimized.o -c ../main/src/program.cpp -I ../main/inc -I ../bplustree/inc -I ../parallelbplustree/inc -std=$(std) -O2
-
-node_optimized.o: ../bplustree/src/node.cpp ../bplustree/inc/node.hpp
-	g++ -o node_optimized.o -c ../bplustree/src/node.cpp -I ../bplustree/inc -std=$(std) -O2
-
-internalnode_optimized.o: ../bplustree/src/internalnode.cpp ../bplustree/inc/internalnode.hpp
-	g++ -o internalnode_optimized.o -c ../bplustree/src/internalnode.cpp -I ../bplustree/inc -std=$(std) -O2
-
-leafnode_optimized.o: ../bplustree/src/leafnode.cpp ../bplustree/inc/leafnode.hpp
-	g++ -o leafnode_optimized.o -c ../bplustree/src/leafnode.cpp -I ../bplustree/inc -std=$(std) -O2
-
-bplustree_optimized.o: ../bplustree/src/bplustree.cpp ../bplustree/inc/bplustree.hpp
-	g++ -o bplustree_optimized.o -c ../bplustree/src/bplustree.cpp -I ../bplustree/inc -std=$(std) -O2
-
-parallelbplustree_optimized.o: ../parallelbplustree/src/parallelbplustree.cpp ../parallelbplustree/inc/parallelbplustree.hpp
-	g++ -o parallelbplustree_optimized.o -c ../parallelbplustree/src/parallelbplustree.cpp -I ../bplustree/inc -I ../parallelbplustree/inc -std=$(std) -O2
+# ALL
+all: debug optimized
 
 
 # CLEAN
