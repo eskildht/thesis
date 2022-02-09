@@ -227,7 +227,10 @@ void ParallelBplustree::threadRemove(std::vector<int> *keys, const int treeIndex
 
 void ParallelBplustree::remove(std::vector<int> &keys) {
 	if (useBloomFilters) {
-		std::vector<std::vector<int>> keysForTrees(numTrees, std::vector<int>(keys.size()/numTrees));
+		std::vector<std::vector<int>> keysForTrees(numTrees);
+		for (int i = 0; i < numTrees; i++) {
+			keysForTrees[i].reserve(keys.size()/numTrees);
+		}
 		for (int i = 0; i < keys.size(); i++) {
 			for (int j = 0; j < numTrees; j++) {
 				std::shared_lock<std::shared_mutex> treeFilterReadLock(*treeFilterLocks[j]);
