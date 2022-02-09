@@ -211,6 +211,45 @@ std::future<std::vector<std::future<bool>>> ParallelBplustree::remove(const int 
 	return fut;
 }
 
+void ParallelBplustree::threadRemove(std::vector<int> keys, const int treeIndex) {
+	std::unique_lock<std::shared_mutex> treeWriteLock(*treeLocks[treeIndex]);
+	for (int key : keys) {
+		trees[treeIndex]->remove(key);
+	}
+}
+
+void ParallelBplustree::threadRemove(std::vector<int> *keys, const int treeIndex) {
+	std::unique_lock<std::shared_mutex> treeWriteLock(*treeLocks[treeIndex]);
+	for (int key : *keys) {
+		trees[treeIndex]->remove(key);
+	}
+}
+
+void ParallelBplustree::remove(std::vector<int> &keys) {
+	if (useBloomFilters) {
+		std::vector<std::vector<int>> keysForTrees(numTrees, std::vector<int>(keys.size()/numTrees));
+		for (int i = 0; i < keys.size(); i++) {
+			for (int j = 0; j < numTrees; j++) {
+				std::shared_lock<std::shared_mutex> treeFilterReadLock(*treeFilterLocks[j]);
+				if (treeFilters[j]->contains(keys[i])) {
+					treeFilterReadLock.unlock();
+					keysForTrees[j].push_back(keys[i]);
+				}
+			}
+		}
+		for (int i = 0; i < numTrees; i++) {
+			if (keysForTrees[i].size() > 0) {
+				threadPool.push_task([=, keys = std::move(keysForTrees[i]), this] { threadRemove(std::move(keys), i); });
+			}
+		}
+	}
+	else {
+		for (int i = 0; i < numTrees; i++) {
+			threadPool.push_task([=, &keys, this] { threadRemove(&keys, i); });
+		}
+	}
+}
+
 std::vector<int> ParallelBplustree::getTreeNumKeys() {
 	std::vector<int> result;
 	for (int i = 0; i < numTrees; i++) {

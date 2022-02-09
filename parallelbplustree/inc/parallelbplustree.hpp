@@ -12,6 +12,7 @@ class ParallelBplustree {
 		void update(const int key, const std::vector<int> &values);
 		std::future<std::vector<std::future<const std::vector<int> *>>> search(const int key);
 		std::future<std::vector<std::future<bool>>> remove(const int key);
+		void remove(std::vector<int> &keys);
 		void show();
 		void waitForWorkToFinish();
 		std::vector<int> getTreeNumKeys();
@@ -40,6 +41,8 @@ class ParallelBplustree {
 		bool threadUpdate(const int key, const std::vector<int> &values, const int treeIndex);
 		void threadUpdateCoordinator(const int key, const std::vector<int> &values);
 		bool threadRemove(const int key, const int treeIndex);
+		void threadRemove(std::vector<int> keys, const int treeIndex);
+		void threadRemove(std::vector<int> *keys, const int treeIndex);
 		void threadRemoveCoordinator(const int key, std::promise<std::vector<std::future<bool>>> *prom);
 };
 
