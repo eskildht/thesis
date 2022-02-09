@@ -71,6 +71,9 @@ std::tuple<std::map<std::string, bool>, std::map<std::string, int>, std::map<std
 			}
 		}
 	}
+	if (optionsString["--test"] == "" && !flagsBool["--help"]) {
+		throw std::string("Test to run must be specified using --test option [possible values: delete, insert, search, update]\n");
+	}
 	return std::make_tuple(flagsBool, optionsInt, optionsString);
 }
 
@@ -108,10 +111,6 @@ int main(int argc, char *argv[]) {
 	std::map<std::string, std::string> &optionsString = std::get<2>(result);
 	if (flagsBool["--help"]) {
 		printHelpInfo();
-		return 0;
-	}
-	else if (optionsString["--test"] == "") {
-		std::cout << "Test to run must be specified using --test option [possible values: delete, insert, search, update]\n";
 		return 0;
 	}
 	else {
