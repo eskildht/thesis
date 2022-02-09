@@ -141,7 +141,6 @@ bool ParallelBplustree::threadUpdate(const int key, const std::vector<int> &valu
 	return trees[treeIndex]->update(key, values, true);
 }
 
-
 void ParallelBplustree::threadUpdateCoordinator(const int key, const std::vector<int> &values) {
 	static thread_local std::mt19937 gen;
 	static thread_local std::uniform_int_distribution<int> distr(0, numTrees - 1);
@@ -211,10 +210,6 @@ std::future<std::vector<std::future<bool>>> ParallelBplustree::remove(const int 
 	threadPool.push_task([=, this] () mutable { threadRemoveCoordinator(key, prom); });
 	return fut;
 }
-
-//void ParallelBplustree::readjustTreeNumInsertOp() {
-//	treeNumInsertOp = std::move(getTreeNumKeys());
-//}
 
 std::vector<int> ParallelBplustree::getTreeNumKeys() {
 	std::vector<int> result;
