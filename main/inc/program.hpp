@@ -3,7 +3,22 @@
 
 class Program {
 	public:
-		Program(const std::string treeType, const int order, const int threads, const int trees, const bool bloom, const int op, const int opDistrLow, const int opDistrHigh, const int buildDistrLow, const int buildDistrHigh, const bool show, const bool batch, const int treeSize, const std::string test);
+		Program(
+				const std::string treeType,
+				const int order,
+				const int threads,
+				const int trees,
+				const bool bloom,
+				const int op,
+				const int opDistrLow,
+				const int opDistrHigh,
+				const int buildDistrLow,
+				const int buildDistrHigh,
+				const bool show,
+				const bool batch,
+				const int treeSize,
+				const std::string test
+				);
 		~Program();
 		void runTest();
 	private:

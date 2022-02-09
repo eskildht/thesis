@@ -1,16 +1,43 @@
 #include "program.hpp"
 #include <iostream>
 
-Program::Program(const std::string treeType, const int order, const int threads, const int trees, const bool bloom, const int op, const int opDistrLow, const int opDistrHigh, const int buildDistrLow, const int buildDistrHigh, const bool show, const bool batch, const int treeSize, const std::string test) : gen(std::random_device{}()), op(op), opDistrLow(opDistrLow), opDistrHigh(opDistrHigh), opDistr(opDistrLow, opDistrHigh), buildDistrLow(buildDistrLow), buildDistrHigh(buildDistrHigh), buildDistr(buildDistrLow, buildDistrHigh), show(show), batch(batch), treeSize(treeSize), test(test) {
-	if (treeType == "basic") {
-		pbtree = nullptr;
-		btree = new Bplustree(order);
+Program::Program(
+		const std::string treeType,
+		const int order,
+		const int threads,
+		const int trees,
+		const bool bloom,
+		const int op,
+		const int opDistrLow,
+		const int opDistrHigh,
+		const int buildDistrLow,
+		const int buildDistrHigh,
+		const bool show,
+		const bool batch,
+		const int treeSize,
+		const std::string test
+		) :
+	gen(std::random_device{}()),
+	op(op),
+	opDistrLow(opDistrLow),
+	opDistrHigh(opDistrHigh),
+	opDistr(opDistrLow, opDistrHigh),
+	buildDistrLow(buildDistrLow),
+	buildDistrHigh(buildDistrHigh),
+	buildDistr(buildDistrLow, buildDistrHigh),
+	show(show),
+	batch(batch),
+	treeSize(treeSize),
+	test(test) {
+		if (treeType == "basic") {
+			pbtree = nullptr;
+			btree = new Bplustree(order);
+		}
+		else {
+			pbtree = new ParallelBplustree(order, threads, trees, bloom);
+			btree = nullptr;
+		}
 	}
-	else {
-		pbtree = new ParallelBplustree(order, threads, trees, bloom);
-		btree = nullptr;
-	}
-}
 
 Program::~Program() {
 	if (btree) {
@@ -227,36 +254,36 @@ std::tuple<std::chrono::duration<double, std::ratio<1, 1000000000>>::rep, int, i
 
 std::tuple<std::chrono::duration<double, std::ratio<1, 1000000000>>::rep, int, int> Program::deleteParallelBplustree() {
 	std::vector<std::future<std::vector<std::future<bool>>>> deleteFutures;
-		deleteFutures.reserve(op);
-		std::vector<std::vector<std::future<bool>>> deleteResult;
-		deleteResult.reserve(op);
-		auto t1 = std::chrono::high_resolution_clock::now();
-		for (int i = 0; i < op; i++) {
-			int k = opDistr(gen);
-			deleteFutures.push_back(pbtree->remove(k));
+	deleteFutures.reserve(op);
+	std::vector<std::vector<std::future<bool>>> deleteResult;
+	deleteResult.reserve(op);
+	auto t1 = std::chrono::high_resolution_clock::now();
+	for (int i = 0; i < op; i++) {
+		int k = opDistr(gen);
+		deleteFutures.push_back(pbtree->remove(k));
+	}
+	auto t2 = std::chrono::high_resolution_clock::now();
+	for (int i = 0; i < op; i++) {
+		std::vector<std::future<bool>> temporaryResult = deleteFutures[i].get();
+		for (int j = 0; j < temporaryResult.size(); j++) {
+			temporaryResult[j].wait();
 		}
-		auto t2 = std::chrono::high_resolution_clock::now();
-		for (int i = 0; i < op; i++) {
-			std::vector<std::future<bool>> temporaryResult = deleteFutures[i].get();
-			for (int j = 0; j < temporaryResult.size(); j++) {
-				temporaryResult[j].wait();
+		deleteResult.push_back(std::move(temporaryResult));
+	}
+	auto t3 = std::chrono::high_resolution_clock::now();
+	std::cout << "Calculating statistics...\n";
+	int hits = 0;
+	for (int i = 0; i < op; i++) {
+		for (int j = 0; j < deleteResult[i].size(); j++) {
+			if (deleteResult[i][j].get()) {
+				hits++;
+				break;
 			}
-			deleteResult.push_back(std::move(temporaryResult));
 		}
-		auto t3 = std::chrono::high_resolution_clock::now();
-		std::cout << "Calculating statistics...\n";
-		int hits = 0;
-		for (int i = 0; i < op; i++) {
-			for (int j = 0; j < deleteResult[i].size(); j++) {
-				if (deleteResult[i][j].get()) {
-					hits++;
-					break;
-				}
-			}
-		}
+	}
 	std::cout << "Time spent pushing tasks to thread pool: " <<  (t2 - t1).count() / 1000000 << " ms\n";
 	std::cout << "Time spent waiting for work to finish: " <<  (t3 - t2).count() / 1000000 << " ms\n";
-		return std::make_tuple((t3 - t1).count(), hits, op - hits);
+	return std::make_tuple((t3 - t1).count(), hits, op - hits);
 }
 
 void Program::updateTest() {
