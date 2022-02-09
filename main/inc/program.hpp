@@ -3,33 +3,38 @@
 
 class Program {
 	public:
-		Program(const int order, const int threads, const int trees, const bool bloom, const int opDistrLow, const int opDistrHigh, const int buildDistrLow, const int buildDistrHigh);
-		Program(const int order, const int opDistrLow, const int opDistrHigh, const int buildDistrLow, const int buildDistrHigh);
-		void printTreeInfo();
-		void buildRandomTree(const int numInserts, const bool show = false, const bool runAsOp = false, const bool batch = false);
-		void searchTest(const int op, const int treeSize, const bool show);
-		void deleteTest(const int op, const int treeSize, const bool show);
-		void insertTest(const int op, const bool show, const bool batch);
-		void updateTest(const int op, const int treeSize, const bool show);
+		Program(const std::string treeType, const int order, const int threads, const int trees, const bool bloom, const int op, const int opDistrLow, const int opDistrHigh, const int buildDistrLow, const int buildDistrHigh, const bool show, const bool batch, const int treeSize, const std::string test);
 		~Program();
+		void runTest();
 	private:
 		ParallelBplustree *pbtree;
 		Bplustree *btree;
 		std::mt19937_64 gen;
+		const int op;
 		const int opDistrLow;
 		const int opDistrHigh;
 		const int buildDistrLow;
 		const int buildDistrHigh;
+		const int treeSize;
+		const bool show;
+		const bool batch;
+		const std::string test;
 		std::uniform_int_distribution<> opDistr;
 		std::uniform_int_distribution<> buildDistr;
+		void printTreeInfo();
+		void buildRandomTree(const bool runAsOp = false);
+		void searchTest();
+		void deleteTest();
+		void insertTest();
+		void updateTest();
 		void printBplustreeInfo();
 		void printParallelBplustreeInfo();
 		std::chrono::duration<double, std::ratio<1, 1000000000>>::rep buildRandomBplustree(const int numInserts, std::uniform_int_distribution<> &distr);
-		std::chrono::duration<double, std::ratio<1, 1000000000>>::rep buildRandomParallelBplustree(const int numInserts, std::uniform_int_distribution<> &distr, const bool batch);
-		std::tuple<std::chrono::duration<double, std::ratio<1, 1000000000>>::rep, int, int> searchBplustree(const int op);
-		std::tuple<std::chrono::duration<double, std::ratio<1, 1000000000>>::rep, int, int> searchParallelBplustree(const int op);
-		std::tuple<std::chrono::duration<double, std::ratio<1, 1000000000>>::rep, int, int> deleteBplustree(const int op);
-		std::tuple<std::chrono::duration<double, std::ratio<1, 1000000000>>::rep, int, int> deleteParallelBplustree(const int op);
-		std::chrono::duration<double, std::ratio<1, 1000000000>>::rep updateBplustree(const int op);
-		std::chrono::duration<double, std::ratio<1, 1000000000>>::rep updateParallelBplustree(const int op);
+		std::chrono::duration<double, std::ratio<1, 1000000000>>::rep buildRandomParallelBplustree(const int numInserts, std::uniform_int_distribution<> &distr);
+		std::tuple<std::chrono::duration<double, std::ratio<1, 1000000000>>::rep, int, int> searchBplustree();
+		std::tuple<std::chrono::duration<double, std::ratio<1, 1000000000>>::rep, int, int> searchParallelBplustree();
+		std::tuple<std::chrono::duration<double, std::ratio<1, 1000000000>>::rep, int, int> deleteBplustree();
+		std::tuple<std::chrono::duration<double, std::ratio<1, 1000000000>>::rep, int, int> deleteParallelBplustree();
+		std::chrono::duration<double, std::ratio<1, 1000000000>>::rep updateBplustree();
+		std::chrono::duration<double, std::ratio<1, 1000000000>>::rep updateParallelBplustree();
 };

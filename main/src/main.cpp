@@ -77,22 +77,6 @@ std::tuple<std::map<std::string, bool>, std::map<std::string, int>, std::map<std
 	return std::make_tuple(flagsBool, optionsInt, optionsString);
 }
 
-void runProgram(Program &program, const std::string &test, const int op, const int treeSize, const bool show, const bool batch) {
-	program.printTreeInfo();
-	if (test == "delete") {
-		program.deleteTest(op, treeSize, show);
-	}
-	else if (test == "insert") {
-		program.insertTest(op, show, batch);
-	}
-	else if (test == "search") {
-		program.searchTest(op, treeSize, show);
-	}
-	else if (test == "update") {
-		program.updateTest(op, treeSize, show);
-	}
-}
-
 int main(int argc, char *argv[]) {
 	std::tuple<std::map<std::string, bool>, std::map<std::string, int>, std::map<std::string, std::string>> result;
 	try {
@@ -114,13 +98,7 @@ int main(int argc, char *argv[]) {
 		return 0;
 	}
 	else {
-		if (optionsString["--tree"] == "basic") {
-			Program program(optionsInt["--order"], optionsInt["--op-distr-low"], optionsInt["--op-distr-high"], optionsInt["--build-distr-low"], optionsInt["--build-distr-high"]);
-			runProgram(program, optionsString["--test"], optionsInt["--op"], optionsInt["--tree-size"], flagsBool["--show"], flagsBool["--batch"]);
-		}
-		else {
-			Program program(optionsInt["--order"], optionsInt["--threads"], optionsInt["--trees"], !flagsBool["--bloom-disable"], optionsInt["--op-distr-low"], optionsInt["--op-distr-high"], optionsInt["--build-distr-low"], optionsInt["--build-distr-high"]);
-			runProgram(program, optionsString["--test"], optionsInt["--op"], optionsInt["--tree-size"], flagsBool["--show"], flagsBool["--batch"]);
-		}
+		Program program(optionsString["--tree"], optionsInt["--order"], optionsInt["--threads"], optionsInt["--trees"], !flagsBool["--bloom-disable"], optionsInt["--op"], optionsInt["--op-distr-low"], optionsInt["--op-distr-high"], optionsInt["--build-distr-low"], optionsInt["--build-distr-high"], flagsBool["--show"], flagsBool["--batch"], optionsInt["--tree-size"], optionsString["--test"]);
+		program.runTest();
 	}
 }
