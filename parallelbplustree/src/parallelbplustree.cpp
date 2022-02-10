@@ -179,6 +179,99 @@ void ParallelBplustree::update(const int key, const std::vector<int> &values) {
 	threadPool.push_task([=, &values, this] { threadUpdateCoordinator(key, values); });
 }
 
+void ParallelBplustree::threadUpdateThenDelete(std::vector<int> updateKeys, std::vector<int> updateIndexOfValues, const std::vector<std::vector<int>> *updateBatchValues, std::vector<int> deleteKeys, const int treeIndex) {
+	std::unique_lock<std::shared_mutex> treeWriteLock(*treeLocks[treeIndex]);
+	for (int i = 0; i < updateKeys.size(); i++) {
+		trees[i]->update(updateKeys[i], (*updateBatchValues)[updateIndexOfValues[i]], true);
+	}
+	for (int i = 0; i < deleteKeys.size(); i++) {
+		trees[i]->remove(deleteKeys[i]);
+	}
+}
+
+void ParallelBplustree::update(std::vector<int> &keys, std::vector<std::vector<int>> &values) {
+	if (keys.size() != values.size()) {
+		throw std::string("Keys size and values size must be equal!\n");
+	}
+	else if (keys.size() < numTrees) {
+		throw std::string("To few keys provided to use this method!\n");
+	}
+	static thread_local std::mt19937 gen;
+	static thread_local std::uniform_int_distribution<int> distr(0, numTrees - 1);
+	std::vector<std::vector<int>> updateKeys(numTrees);
+	std::vector<std::vector<int>> updateIndexOfValues(numTrees);
+	std::vector<std::vector<int>> deleteKeys(numTrees);
+	if (useBloomFilters) {
+		for (int i = 0; i < numTrees; i++) {
+			updateKeys.reserve(keys.size() / numTrees);
+			updateIndexOfValues.reserve(values.size() / numTrees);
+		}
+		for (int i = 0; i < keys.size(); i++) {
+			bool keyWasFoundInFilter = false;
+			for (int j = 0; j < numTrees; j++) {
+				std::shared_lock<std::shared_mutex> treeFilterReadLock(*treeFilterLocks[j]);
+				if (treeFilters[j]->contains(keys[i])) {
+					treeFilterReadLock.unlock();
+					updateKeys[j].push_back(keys[i]);
+					updateIndexOfValues[j].push_back(i);
+					keyWasFoundInFilter = true;
+				}
+				else if (keyWasFoundInFilter) {
+					deleteKeys[j].push_back(keys[i]);
+				}
+				else if (j == (numTrees - 1) && !keyWasFoundInFilter) {
+					updateKeys[distr(gen)].push_back(keys[i]);
+				}
+			}
+		}
+	}
+	else {
+		int splitSize = keys.size() / numTrees;
+		for (int i = 0; i < numTrees; i++) {
+			updateKeys.reserve(splitSize);
+			updateIndexOfValues.reserve(splitSize);
+			deleteKeys.reserve(splitSize * (numTrees - 1));
+		}
+		int treeSelector = 0;
+		for (int i = 0; i < keys.size(); i++) {
+			if (i % splitSize == 0 && i > 0) {
+				treeSelector++;
+			}
+			if (treeSelector < numTrees) {
+				updateKeys[treeSelector].push_back(keys[i]);
+				updateIndexOfValues[treeSelector].push_back(i);
+				for (int j = 0; j < numTrees; j++) {
+					if (treeSelector != j) {
+						deleteKeys[j].push_back(keys[i]);
+					}
+				}
+			}
+			else {
+				updateKeys[numTrees - 1].push_back(keys[i]);
+				for (int j = 0; j < numTrees - 1; j++) {
+					deleteKeys[j].push_back(keys[i]);
+				}
+			}
+		}
+	}
+	for (int i = 0; i < numTrees; i++) {
+		threadPool.push_task([
+				=,
+				updateKeys = std::move(updateKeys[i]),
+				updateIndexOfValues = std::move(updateIndexOfValues[i]),
+				deleteKeys = std::move(deleteKeys[i]),
+				this
+		] {
+		threadUpdateThenDelete(
+				std::move(updateKeys),
+				std::move(updateIndexOfValues),
+				&values,
+				std::move(deleteKeys),
+				i);
+		});
+	}
+}
+
 bool ParallelBplustree::threadRemove(const int key, const int treeIndex) {
 	std::unique_lock<std::shared_mutex> treeWriteLock(*treeLocks[treeIndex]);
 	return trees[treeIndex]->remove(key);
