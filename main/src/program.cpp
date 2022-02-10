@@ -222,68 +222,73 @@ void Program::deleteTest() {
 	buildRandomTree();
 	std::cout << "Delete operations to perform: " << op << "\n";
 	std::cout << "Keys to search for uniformly drawn from range [" << opDistrLow << ", " << opDistrHigh << "]\n";
-	std::cout << "Deleting...\n";
 	std::tuple<std::chrono::duration<double, std::ratio<1, 1000000000>>::rep, int, int> result = btree ? deleteBplustree() : deleteParallelBplustree();
 	std::chrono::duration<double, std::ratio<1, 1000000000>>::rep ns = std::get<0>(result);
-	int hits = std::get<1>(result);
-	int misses = std::get<2>(result);
+	int oldNumKeys = std::get<1>(result);
+	int newNumKeys = std::get<2>(result);
 	std::cout << "Delete finished in: " << ns / 1000000 << " ms\n";
-	std::cout << "Delete key hits: " << hits << "\n";
-	std::cout << "Delete key misses: " << misses << "\n";
+	std::cout << "Tree size before delete: " << oldNumKeys << "\n";
+	std::cout << "Tree size after delete: " << newNumKeys << "\n";
 	std::cout << "Delete performance: " << op / (ns / 1000000000) << " ops\n";
 }
 
 std::tuple<std::chrono::duration<double, std::ratio<1, 1000000000>>::rep, int, int> Program::deleteBplustree() {
-	std::vector<bool> deleteResult;
-	deleteResult.reserve(op);
+	int oldNumKeys = btree->getNumKeysStored();
+	std::cout << "Calling remove...\n";
 	auto t1 = std::chrono::high_resolution_clock::now();
 	for (int i = 0; i < op; i++) {
-		int k = opDistr(gen);
-		deleteResult.push_back(std::move(btree->remove(k)));
+		btree->remove(opDistr(gen));
 	}
 	auto t2 = std::chrono::high_resolution_clock::now();
-	std::cout << "Calculating statistics...\n";
-	int hits = 0;
-	for (int i = 0; i < op; i++) {
-		if (deleteResult[i]) {
-			hits++;
-		}
-	}
-	return std::make_tuple((t2 - t1).count(), hits, op - hits);
+	int newNumKeys = btree->getNumKeysStored();
+	return std::make_tuple((t2 - t1).count(), oldNumKeys, newNumKeys);
 }
 
 std::tuple<std::chrono::duration<double, std::ratio<1, 1000000000>>::rep, int, int> Program::deleteParallelBplustree() {
 	std::vector<std::future<std::vector<std::future<bool>>>> deleteFutures;
 	deleteFutures.reserve(op);
-	std::vector<std::vector<std::future<bool>>> deleteResult;
-	deleteResult.reserve(op);
 	auto t1 = std::chrono::high_resolution_clock::now();
-	for (int i = 0; i < op; i++) {
-		int k = opDistr(gen);
-		deleteFutures.push_back(pbtree->remove(k));
-	}
 	auto t2 = std::chrono::high_resolution_clock::now();
-	for (int i = 0; i < op; i++) {
-		std::vector<std::future<bool>> temporaryResult = deleteFutures[i].get();
-		for (int j = 0; j < temporaryResult.size(); j++) {
-			temporaryResult[j].wait();
-		}
-		deleteResult.push_back(std::move(temporaryResult));
-	}
 	auto t3 = std::chrono::high_resolution_clock::now();
-	std::cout << "Calculating statistics...\n";
-	int hits = 0;
-	for (int i = 0; i < op; i++) {
-		for (int j = 0; j < deleteResult[i].size(); j++) {
-			if (deleteResult[i][j].get()) {
-				hits++;
-				break;
+	int oldNumKeys = 0;
+	for (int num : pbtree->getTreeNumKeys()) {
+		oldNumKeys += num;
+	}
+	if (batch) {
+		std::cout << "Generating keys for batch delete...\n";
+		std::vector<int> keys;
+		keys.reserve(op);
+		for (int i = 0; i < op; i++) {
+			keys.push_back(opDistr(gen));
+		}
+		std::cout << "Calling remove...\n";
+		t1 = std::chrono::high_resolution_clock::now();
+		pbtree->remove(keys);
+		t2 = std::chrono::high_resolution_clock::now();
+		pbtree->waitForWorkToFinish();
+		t3 = std::chrono::high_resolution_clock::now();
+	}
+	else {
+		t1 = std::chrono::high_resolution_clock::now();
+		for (int i = 0; i < op; i++) {
+			deleteFutures.push_back(pbtree->remove(opDistr(gen)));
+		}
+		t2 = std::chrono::high_resolution_clock::now();
+		for (int i = 0; i < op; i++) {
+			std::vector<std::future<bool>> temporaryResult = deleteFutures[i].get();
+			for (int j = 0; j < temporaryResult.size(); j++) {
+				temporaryResult[j].wait();
 			}
 		}
+		t3 = std::chrono::high_resolution_clock::now();
+	}
+	int newNumKeys = 0;
+	for (int num : pbtree->getTreeNumKeys()) {
+		newNumKeys += num;
 	}
 	std::cout << "Time spent pushing tasks to thread pool: " <<  (t2 - t1).count() / 1000000 << " ms\n";
 	std::cout << "Time spent waiting for work to finish: " <<  (t3 - t2).count() / 1000000 << " ms\n";
-	return std::make_tuple((t3 - t1).count(), hits, op - hits);
+	return std::make_tuple((t3 - t1).count(), oldNumKeys, newNumKeys);
 }
 
 void Program::updateTest() {
@@ -310,7 +315,7 @@ std::chrono::duration<double, std::ratio<1, 1000000000>>::rep Program::updateBpl
 }
 
 std::chrono::duration<double, std::ratio<1, 1000000000>>::rep Program::updateParallelBplustree() {
-	std::cout << "Value references prepared\n";
+	std::cout << "Generating keys and values...\n";
 	std::vector<int> keys;
 	keys.reserve(op);
 	std::vector<std::vector<int>> values;
