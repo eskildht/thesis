@@ -217,9 +217,11 @@ void ParallelBplustree::update(std::vector<int> &keys, std::vector<std::vector<i
 					keyWasFoundInFilter = true;
 				}
 				else if (keyWasFoundInFilter) {
+					treeFilterReadLock.unlock();
 					deleteKeys[j].push_back(keys[i]);
 				}
 				else if (j == (numTrees - 1) && !keyWasFoundInFilter) {
+					treeFilterReadLock.unlock();
 					updateKeys[distr(gen)].push_back(keys[i]);
 				}
 			}
