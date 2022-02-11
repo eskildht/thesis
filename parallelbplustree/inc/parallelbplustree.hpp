@@ -10,10 +10,12 @@ class ParallelBplustree {
 		void insert(const int key, const int value);
 		void insert(std::vector<int> &keys, std::vector<int> &values);
 		void update(const int key, const std::vector<int> &values);
+		void update(std::vector<int> &keys, std::vector<std::vector<int>> &values);
 		std::future<std::vector<std::future<const std::vector<int> *>>> search(const int key);
+		std::vector<std::vector<std::future<const std::vector<int> *>>> search(const std::vector<int> &keys);
 		std::future<std::vector<std::future<bool>>> remove(const int key);
 		void remove(std::vector<int> &keys);
-		void update(std::vector<int> &keys, std::vector<std::vector<int>> &values);
+
 		void show();
 		void waitForWorkToFinish();
 		std::vector<int> getTreeNumKeys();
