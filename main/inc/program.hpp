@@ -50,6 +50,6 @@ class Program {
 		std::tuple<std::chrono::duration<double, std::ratio<1, 1000000000>>::rep, int, int> searchParallelBplustree();
 		std::tuple<std::chrono::duration<double, std::ratio<1, 1000000000>>::rep, int, int> deleteBplustree();
 		std::tuple<std::chrono::duration<double, std::ratio<1, 1000000000>>::rep, int, int> deleteParallelBplustree();
-		std::chrono::duration<double, std::ratio<1, 1000000000>>::rep updateBplustree();
-		std::chrono::duration<double, std::ratio<1, 1000000000>>::rep updateParallelBplustree();
+		std::tuple<std::chrono::duration<double, std::ratio<1, 1000000000>>::rep, int, int> updateBplustree();
+		std::tuple<std::chrono::duration<double, std::ratio<1, 1000000000>>::rep, int, int> updateParallelBplustree();
 };
