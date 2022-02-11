@@ -203,8 +203,8 @@ void ParallelBplustree::update(std::vector<int> &keys, std::vector<std::vector<i
 	std::vector<std::vector<int>> deleteKeys(numTrees);
 	if (useBloomFilters) {
 		for (int i = 0; i < numTrees; i++) {
-			updateKeys.reserve(keys.size() / numTrees);
-			updateIndexOfValues.reserve(values.size() / numTrees);
+			updateKeys[i].reserve(keys.size() / numTrees);
+			updateIndexOfValues[i].reserve(values.size() / numTrees);
 		}
 		for (int i = 0; i < keys.size(); i++) {
 			bool keyWasFoundInFilter = false;
@@ -230,9 +230,9 @@ void ParallelBplustree::update(std::vector<int> &keys, std::vector<std::vector<i
 	else {
 		int splitSize = keys.size() / numTrees;
 		for (int i = 0; i < numTrees; i++) {
-			updateKeys.reserve(splitSize);
-			updateIndexOfValues.reserve(splitSize);
-			deleteKeys.reserve(splitSize * (numTrees - 1));
+			updateKeys[i].reserve(splitSize);
+			updateIndexOfValues[i].reserve(splitSize);
+			deleteKeys[i].reserve(splitSize * (numTrees - 1));
 		}
 		int treeSelector = 0;
 		for (int i = 0; i < keys.size(); i++) {
