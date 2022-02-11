@@ -1,5 +1,6 @@
 #include "parallelbplustree.hpp"
 #include <random>
+#include <sstream>
 
 ParallelBplustree::ParallelBplustree(const int order, const int numThreads, const int numTrees, const bool useBloomFilters) : order(order), numThreads(numThreads), threadPool(numThreads), numTrees(numTrees), useBloomFilters(useBloomFilters) {
 	for (int i = 0; i < numTrees; i++) {
@@ -182,10 +183,10 @@ void ParallelBplustree::update(const int key, const std::vector<int> &values) {
 void ParallelBplustree::threadUpdateThenDelete(std::vector<int> updateKeys, std::vector<int> updateIndexOfValues, const std::vector<std::vector<int>> *updateBatchValues, std::vector<int> deleteKeys, const int treeIndex) {
 	std::unique_lock<std::shared_mutex> treeWriteLock(*treeLocks[treeIndex]);
 	for (int i = 0; i < updateKeys.size(); i++) {
-		trees[i]->update(updateKeys[i], (*updateBatchValues)[updateIndexOfValues[i]], true);
+		trees[treeIndex]->update(updateKeys[i], (*updateBatchValues)[updateIndexOfValues[i]], true);
 	}
 	for (int i = 0; i < deleteKeys.size(); i++) {
-		trees[i]->remove(deleteKeys[i]);
+		trees[treeIndex]->remove(deleteKeys[i]);
 	}
 }
 
@@ -222,7 +223,9 @@ void ParallelBplustree::update(std::vector<int> &keys, std::vector<std::vector<i
 				}
 				else if (j == (numTrees - 1) && !keyWasFoundInFilter) {
 					treeFilterReadLock.unlock();
-					updateKeys[distr(gen)].push_back(keys[i]);
+					int index = distr(gen);
+					updateKeys[index].push_back(keys[i]);
+					updateIndexOfValues[index].push_back(i);
 				}
 			}
 		}
@@ -250,6 +253,7 @@ void ParallelBplustree::update(std::vector<int> &keys, std::vector<std::vector<i
 			}
 			else {
 				updateKeys[numTrees - 1].push_back(keys[i]);
+				updateIndexOfValues[numTrees - 1].push_back(i);
 				for (int j = 0; j < numTrees - 1; j++) {
 					deleteKeys[j].push_back(keys[i]);
 				}
