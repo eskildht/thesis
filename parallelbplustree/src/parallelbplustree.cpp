@@ -155,7 +155,6 @@ void ParallelBplustree::threadSearch(const std::vector<int> *batchKeys, const in
 
 std::vector<std::vector<const std::vector<int> *>> ParallelBplustree::search(const std::vector<int> &keys) {
 	std::vector<std::vector<const std::vector<int> *>> result(keys.size());
-	//TODO clean this trash
 	if (useBloomFilters) {
 		std::vector<std::vector<int>> keysPos(numTrees);
 		for (int i = 0; i < numTrees; i++) {
