@@ -136,6 +136,56 @@ std::future<std::vector<std::future<const std::vector<int> *>>> ParallelBplustre
 	return fut;
 }
 
+
+void ParallelBplustree::threadSearch(const std::vector<int> *batchKeys, const int treeIndex, std::vector<std::vector<const std::vector<int> *>> &result, const std::vector<int> keysPos) {
+	if (keysPos.size() > 0) {
+		std::shared_lock<std::shared_mutex> treeReadLock(*treeLocks[treeIndex]);
+		for (int i = 0; i < keysPos.size(); i++) {
+			result[keysPos[i]].push_back(trees[treeIndex]->search((*batchKeys)[keysPos[i]]));
+		}
+	}
+	else {
+		std::shared_lock<std::shared_mutex> treeReadLock(*treeLocks[treeIndex]);
+		for (int i = 0; i < batchKeys->size(); i++) {
+			result[i].push_back(trees[treeIndex]->search((*batchKeys)[i]));
+		}
+	}
+}
+
+
+std::vector<std::vector<const std::vector<int> *>> ParallelBplustree::search(const std::vector<int> &keys) {
+	std::vector<std::vector<const std::vector<int> *>> result(keys.size());
+	//TODO clean this trash
+	if (useBloomFilters) {
+		std::vector<std::vector<int>> keysPos(numTrees);
+		for (int i = 0; i < numTrees; i++) {
+			keysPos[i].reserve(keys.size() / numTrees);
+		}
+		for (int i = 0; i < keys.size(); i++) {
+			result[i].reserve(numTrees);
+			for (int j = 0; j < numTrees; j++) {
+				std::shared_lock<std::shared_mutex> treeFilterReadLock(*treeFilterLocks[i]);
+				if (treeFilters[j]->contains(keys[i])) {
+					treeFilterReadLock.unlock();
+					keysPos[j].push_back(i);
+				}
+			}
+		}
+		for (int i = 0; i < numTrees; i++) {
+			threadPool.submit([=, keysPos = std::move(keysPos[i]), &result, this] { threadSearch(&keys, i, result, std::move(keysPos)); });
+		}
+	}
+	else {
+		for (int i = 0; i < keys.size(); i++) {
+			result[i].reserve(numTrees);
+		}
+		for (int i = 0; i < numTrees; i++) {
+			threadPool.submit([=, &result, this] { threadSearch(&keys, i, result, {}); });
+		}
+	}
+	return result;
+}
+
 bool ParallelBplustree::threadUpdate(const int key, const std::vector<int> &values, const int treeIndex) {
 	std::unique_lock<std::shared_mutex> treeWriteLock(*treeLocks[treeIndex]);
 	return trees[treeIndex]->update(key, values, true);

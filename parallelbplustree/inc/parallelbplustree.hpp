@@ -12,7 +12,7 @@ class ParallelBplustree {
 		void update(const int key, const std::vector<int> &values);
 		void update(std::vector<int> &keys, std::vector<std::vector<int>> &values);
 		std::future<std::vector<std::future<const std::vector<int> *>>> search(const int key);
-		std::vector<std::vector<std::future<const std::vector<int> *>>> search(const std::vector<int> &keys);
+		std::vector<std::vector<const std::vector<int> *>> search(const std::vector<int> &keys);
 		std::future<std::vector<std::future<bool>>> remove(const int key);
 		void remove(std::vector<int> &keys);
 
@@ -40,6 +40,7 @@ class ParallelBplustree {
 		void threadInsert(const int key, const int value);
 		void threadInsert(std::vector<int>::iterator keysSplitBegin, std::vector<int>::iterator keysSplitEnd, std::vector<int>::iterator valuesSplitBegin, const int treeIndex = -1);
 		const std::vector<int> *threadSearch(const int key, const int treeIndex) const;
+		void threadSearch(const std::vector<int> *batchKeys, const int treeIndex, std::vector<std::vector<const std::vector<int> *>> &result, const std::vector<int> keysPos);
 		void threadSearchCoordinator(const int key, std::promise<std::vector<std::future<const std::vector<int> *>>> *prom);
 		bool threadUpdate(const int key, const std::vector<int> &values, const int treeIndex);
 		void threadUpdateThenDelete(std::vector<int> updateKeys, std::vector<int> updateIndexOfValues, const std::vector<std::vector<int>> *updateBatchValues, std::vector<int> deleteKeys, const int treeIndex);
