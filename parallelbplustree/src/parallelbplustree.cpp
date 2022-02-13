@@ -136,7 +136,6 @@ std::future<std::vector<std::future<const std::vector<int> *>>> ParallelBplustre
 	return fut;
 }
 
-
 void ParallelBplustree::threadSearch(const std::vector<int> *batchKeys, const int treeIndex, std::vector<std::vector<const std::vector<int> *>> &result, const std::vector<int> keysPos) {
 	if (keysPos.size() > 0) {
 		std::shared_lock<std::shared_mutex> treeReadLock(*treeLocks[treeIndex]);
@@ -152,7 +151,6 @@ void ParallelBplustree::threadSearch(const std::vector<int> *batchKeys, const in
 	}
 }
 
-
 std::vector<std::vector<const std::vector<int> *>> ParallelBplustree::search(const std::vector<int> &keys) {
 	std::vector<std::vector<const std::vector<int> *>> result(keys.size());
 	if (useBloomFilters) {
@@ -163,7 +161,7 @@ std::vector<std::vector<const std::vector<int> *>> ParallelBplustree::search(con
 		for (int i = 0; i < keys.size(); i++) {
 			result[i].reserve(numTrees);
 			for (int j = 0; j < numTrees; j++) {
-				std::shared_lock<std::shared_mutex> treeFilterReadLock(*treeFilterLocks[i]);
+				std::shared_lock<std::shared_mutex> treeFilterReadLock(*treeFilterLocks[j]);
 				if (treeFilters[j]->contains(keys[i])) {
 					treeFilterReadLock.unlock();
 					keysPos[j].push_back(i);

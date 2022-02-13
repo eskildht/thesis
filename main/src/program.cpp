@@ -154,7 +154,6 @@ void Program::searchTest() {
 	buildRandomTree();
 	std::cout << "Search operations to perform: " << op << "\n";
 	std::cout << "Keys to search for uniformly drawn from range [" << opDistrLow << ", " << opDistrHigh << "]\n";
-	std::cout << "Searching...\n";
 	std::tuple<std::chrono::duration<double, std::ratio<1, 1000000000>>::rep, int, int> result = btree ? searchBplustree() : searchParallelBplustree();
 	std::chrono::duration<double, std::ratio<1, 1000000000>>::rep ns = std::get<0>(result);
 	int hits = std::get<1>(result);
@@ -167,6 +166,7 @@ void Program::searchTest() {
 
 std::tuple<std::chrono::duration<double, std::ratio<1, 1000000000>>::rep, int, int> Program::searchBplustree() {
 	std::vector<const std::vector<int> *> searchResult;
+	std::cout << "Calling search...\n";
 	auto t1 = std::chrono::high_resolution_clock::now();
 	for (int i = 0; i < op; i++) {
 		int k = opDistr(gen);
@@ -184,36 +184,65 @@ std::tuple<std::chrono::duration<double, std::ratio<1, 1000000000>>::rep, int, i
 };
 
 std::tuple<std::chrono::duration<double, std::ratio<1, 1000000000>>::rep, int, int> Program::searchParallelBplustree() {
-	std::vector<std::future<std::vector<std::future<const std::vector<int> *>>>> searchFutures;
-	searchFutures.reserve(op);
-	std::vector<std::vector<std::future<const std::vector<int> *>>> searchResult;
-	searchResult.reserve(op);
 	auto t1 = std::chrono::high_resolution_clock::now();
-	for (int i = 0; i < op; i++) {
-		int k = opDistr(gen);
-		searchFutures.push_back(pbtree->search(k));
-	}
 	auto t2 = std::chrono::high_resolution_clock::now();
-	for (int i = 0; i < op; i++) {
-		std::vector<std::future<const std::vector<int> *>> temporaryResult = searchFutures[i].get();
-		for (int j = 0; j < temporaryResult.size(); j++) {
-			temporaryResult[j].wait();
-		}
-		searchResult.push_back(std::move(temporaryResult));
-	}
 	auto t3 = std::chrono::high_resolution_clock::now();
-	std::cout << "Calculating statistics...\n";
 	int hits = 0;
-	for (int i = 0; i < op; i++) {
-		for (int j = 0; j < searchResult[i].size(); j++) {
-			if (searchResult[i][j].get()) {
-				hits++;
-				break;
+	if (batch) {
+		std::cout << "Generating keys for batch search...\n";
+		std::vector<int> keys;
+		keys.reserve(op);
+		for (int i = 0; i < op; i++) {
+			keys.push_back(opDistr(gen));
+		}
+		std::cout << "Calling search...\n";
+		t1 = std::chrono::high_resolution_clock::now();
+		std::vector<std::vector<const std::vector<int> *>> result = pbtree->search(keys);
+		t2 = std::chrono::high_resolution_clock::now();
+		pbtree->waitForWorkToFinish();
+		t3 = std::chrono::high_resolution_clock::now();
+		std::cout << "Calculating statistics...\n";
+		for (int i = 0; i < result.size(); i++) {
+			for (int j = 0; j < result[i].size(); j++) {
+				if (result[i][j]) {
+					hits++;
+					break;
+				}
 			}
 		}
 	}
-	std::cout << "Time spent pushing tasks to thread pool: " <<  (t2 - t1).count() / 1000000 << " ms\n";
-	std::cout << "Time spent waiting for work to finish: " <<  (t3 - t2).count() / 1000000 << " ms\n";
+	else {
+		std::vector<std::future<std::vector<std::future<const std::vector<int> *>>>> searchFutures;
+		searchFutures.reserve(op);
+		std::vector<std::vector<std::future<const std::vector<int> *>>> searchResult;
+		searchResult.reserve(op);
+		std::cout << "Calling search...\n";
+		t1 = std::chrono::high_resolution_clock::now();
+		for (int i = 0; i < op; i++) {
+			int k = opDistr(gen);
+			searchFutures.push_back(pbtree->search(k));
+		}
+		t2 = std::chrono::high_resolution_clock::now();
+		for (int i = 0; i < op; i++) {
+			std::vector<std::future<const std::vector<int> *>> temporaryResult = searchFutures[i].get();
+			for (int j = 0; j < temporaryResult.size(); j++) {
+				temporaryResult[j].wait();
+			}
+			searchResult.push_back(std::move(temporaryResult));
+		}
+		t3 = std::chrono::high_resolution_clock::now();
+		std::cout << "Calculating statistics...\n";
+		for (int i = 0; i < op; i++) {
+			for (int j = 0; j < searchResult[i].size(); j++) {
+				if (searchResult[i][j].get()) {
+					hits++;
+					break;
+				}
+			}
+		}
+	}
+	std::cout << "Time spent pushing tasks to thread pool: " <<	(t2 - t1).count() / 1000000 << " ms\n";
+	std::cout << "Time spent waiting for work to finish: " <<	(t3 - t2).count() / 1000000 << " ms\n";
 	return std::make_tuple((t3 - t1).count(), hits, op - hits);
 };
 
@@ -269,6 +298,7 @@ std::tuple<std::chrono::duration<double, std::ratio<1, 1000000000>>::rep, int, i
 		t3 = std::chrono::high_resolution_clock::now();
 	}
 	else {
+		std::cout << "Calling remove...\n";
 		t1 = std::chrono::high_resolution_clock::now();
 		for (int i = 0; i < op; i++) {
 			deleteFutures.push_back(pbtree->remove(opDistr(gen)));
