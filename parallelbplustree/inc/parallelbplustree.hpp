@@ -31,7 +31,6 @@ class ParallelBplustree {
 		const int numThreads;
 		const int numTrees;
 		const bool useBloomFilters;
-		int updateOrInsertTreeSelector = 0;
 		std::vector<Bplustree *> trees;
 		std::vector<std::shared_mutex *> treeLocks;
 		std::vector<bloom_filter *> treeFilters;
