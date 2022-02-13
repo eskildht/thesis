@@ -155,7 +155,7 @@ void ParallelBplustree::insert(std::vector<int> &keys, std::vector<int> &values)
 void ParallelBplustree::threadSearchCoordinator(
 		const int key,
 		std::promise<std::vector<std::future<const std::vector<int> *>>> *prom
-		) {
+	) {
 	std::vector<std::future<const std::vector<int> *>> result;
 	if (useBloomFilters) {
 		for (int i = 0; i < numTrees; i++) {
