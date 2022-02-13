@@ -169,7 +169,7 @@ std::vector<std::vector<const std::vector<int> *>> ParallelBplustree::search(con
 			}
 		}
 		for (int i = 0; i < numTrees; i++) {
-			threadPool.submit([=, keysPos = std::move(keysPos[i]), &result, this] { threadSearch(&keys, i, result, std::move(keysPos)); });
+			threadPool.push_task([=, keysPos = std::move(keysPos[i]), &result, this] { threadSearch(&keys, i, result, std::move(keysPos)); });
 		}
 	}
 	else {
@@ -177,7 +177,7 @@ std::vector<std::vector<const std::vector<int> *>> ParallelBplustree::search(con
 			result[i].reserve(numTrees);
 		}
 		for (int i = 0; i < numTrees; i++) {
-			threadPool.submit([=, &result, this] { threadSearch(&keys, i, result, {}); });
+			threadPool.push_task([=, &result, this] { threadSearch(&keys, i, result, {}); });
 		}
 	}
 	return result;
