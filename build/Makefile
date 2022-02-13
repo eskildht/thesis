@@ -63,8 +63,16 @@ parallelbplustree_debug.o: ../parallelbplustree/src/parallelbplustree.cpp ../par
 	g++ -o parallelbplustree_debug.o -c ../parallelbplustree/src/parallelbplustree.cpp -I ../bplustree/inc -I ../parallelbplustree/inc -std=$(std) -g
 
 
+# TESTS
+tests: optimized bplustree_test.o
+	g++ $(libinc) -lgtest -lgtest_main *_test.o node_optimized.o internalnode_optimized.o leafnode_optimized.o bplustree_optimized.o parallelbplustree_optimized.o -o tests -std=$(std)
+
+bplustree_test.o: ../tests/bplustree_test.cpp
+	g++ $(libinc) -o bplustree_test.o -c ../tests/bplustree_test.cpp -I ../bplustree/inc -std=$(std)
+
+
 # ALL
-all: debug optimized
+all: debug optimized tests
 
 
 # CLEAN
