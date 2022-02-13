@@ -1,22 +1,32 @@
 #include "parallelbplustree.hpp"
 #include <random>
 
-ParallelBplustree::ParallelBplustree(const int order, const int numThreads, const int numTrees, const bool useBloomFilters) : order(order), numThreads(numThreads), threadPool(numThreads), numTrees(numTrees), useBloomFilters(useBloomFilters) {
-	for (int i = 0; i < numTrees; i++) {
-		trees.push_back(new Bplustree(order));
-		treeLocks.push_back(new std::shared_mutex);
-		treeFilterLocks.push_back(new std::shared_mutex);
-	}
-	if (useBloomFilters) {
-		bloom_parameters parameters;
-		parameters.projected_element_count = 1000000;
-		parameters.false_positive_probability = 0.000001;
-		parameters.compute_optimal_parameters();
+ParallelBplustree::ParallelBplustree(
+		const int order,
+		const int numThreads,
+		const int numTrees,
+		const bool useBloomFilters
+		) :
+	order(order),
+	numThreads(numThreads),
+	threadPool(numThreads),
+	numTrees(numTrees),
+	useBloomFilters(useBloomFilters) {
 		for (int i = 0; i < numTrees; i++) {
-			treeFilters.push_back(new bloom_filter(parameters));
+			trees.push_back(new Bplustree(order));
+			treeLocks.push_back(new std::shared_mutex);
+			treeFilterLocks.push_back(new std::shared_mutex);
+		}
+		if (useBloomFilters) {
+			bloom_parameters parameters;
+			parameters.projected_element_count = 1000000;
+			parameters.false_positive_probability = 0.000001;
+			parameters.compute_optimal_parameters();
+			for (int i = 0; i < numTrees; i++) {
+				treeFilters.push_back(new bloom_filter(parameters));
+			}
 		}
 	}
-}
 
 void ParallelBplustree::threadInsert(const int key, const int value) {
 	static thread_local std::mt19937 gen;
@@ -59,7 +69,11 @@ void ParallelBplustree::insert(const int key, const int value) {
 	threadPool.push_task([=, this] { threadInsert(key, value); });
 }
 
-void ParallelBplustree::threadInsert(std::vector<int>::iterator keysSplitBegin, std::vector<int>::iterator keysSplitEnd, std::vector<int>::iterator valuesSplitBegin, const int treeIndex) {
+void ParallelBplustree::threadInsert(
+		std::vector<int>::iterator keysSplitBegin,
+		std::vector<int>::iterator keysSplitEnd,
+		std::vector<int>::iterator valuesSplitBegin,
+		const int treeIndex) {
 	if (treeIndex > -1) {
 		std::unique_lock<std::shared_mutex> treeWriteLock(*treeLocks[treeIndex]);
 		for(std::vector<int>::iterator keysSplitIt = keysSplitBegin; keysSplitIt != keysSplitEnd; keysSplitIt++, valuesSplitBegin++) {
@@ -86,10 +100,26 @@ void ParallelBplustree::insert(std::vector<int> &keys, std::vector<int> &values)
 		}
 		const size_t splitSize = keys.size() / numThreads;
 		for (int i = 0; i < (numThreads - 1); i++) {
-			threadPool.push_task([=, this] { threadInsert(keysIt + i*splitSize, keysIt + (i+1)*splitSize, valuesIt + i*splitSize); });
+			threadPool.push_task([
+					=,
+					this
+			] { 
+			threadInsert(
+				keysIt + i*splitSize,
+				keysIt + (i+1)*splitSize,
+				valuesIt + i*splitSize);
+			});
 		}
 		std::vector<int>::iterator keysItEnd = keys.end();
-		threadPool.push_task([=, this] { threadInsert(keysIt + (numThreads - 1)*splitSize, keysItEnd, valuesIt + (numThreads - 1)*splitSize); });
+		threadPool.push_task([
+				=,
+				this
+		] {
+		threadInsert(
+				keysIt + (numThreads - 1)*splitSize,
+				keysItEnd,
+				valuesIt + (numThreads - 1)*splitSize);
+		});
 	}
 	else {
 		if (keys.size() < numTrees) {
@@ -97,14 +127,35 @@ void ParallelBplustree::insert(std::vector<int> &keys, std::vector<int> &values)
 		}
 		const size_t splitSize = keys.size() / numTrees;
 		for (int i = 0; i < (numTrees - 1); i++) {
-			threadPool.push_task([=, this] { threadInsert(keysIt + i*splitSize, keysIt + (i+1)*splitSize, valuesIt + i*splitSize, i); });
+			threadPool.push_task([
+					=,
+					this
+			] {
+			threadInsert(
+					keysIt + i*splitSize,
+					keysIt + (i+1)*splitSize,
+					valuesIt + i*splitSize,
+					i);
+			});
 		}
 		std::vector<int>::iterator keysItEnd = keys.end();
-		threadPool.push_task([=, this] { threadInsert(keysIt + (numTrees - 1)*splitSize, keysItEnd, valuesIt + (numTrees - 1)*splitSize, numTrees - 1); });
+		threadPool.push_task([
+				=,
+				this
+		] {
+		threadInsert(
+				keysIt + (numTrees - 1)*splitSize,
+				keysItEnd,
+				valuesIt + (numTrees - 1)*splitSize,
+				numTrees - 1);
+		});
 	}
 }
 
-void ParallelBplustree::threadSearchCoordinator(const int key, std::promise<std::vector<std::future<const std::vector<int> *>>> *prom) {
+void ParallelBplustree::threadSearchCoordinator(
+		const int key,
+		std::promise<std::vector<std::future<const std::vector<int> *>>> *prom
+	) {
 	std::vector<std::future<const std::vector<int> *>> result;
 	if (useBloomFilters) {
 		for (int i = 0; i < numTrees; i++) {
