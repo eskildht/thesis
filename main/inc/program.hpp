@@ -1,6 +1,13 @@
 #include "parallelbplustree.hpp"
 #include <random>
 
+//the following are UBUNTU/LINUX, and MacOS ONLY terminal color codes.
+#define RESET       "\033[0m"
+#define GREEN       "\033[32m"        /* Green */
+#define YELLOW      "\033[33m"        /* Yellow */
+#define MAGENTA     "\033[35m"        /* Magenta */
+#define CYAN        "\033[36m"        /* Cyan */
+
 class Program {
 	public:
 		Program(

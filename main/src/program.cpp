@@ -1,6 +1,7 @@
 #include "program.hpp"
 #include <iostream>
 
+
 Program::Program(
 		const std::string treeType,
 		const int order,
@@ -69,20 +70,20 @@ void Program::printTreeInfo() {
 }
 
 void Program::printBplustreeInfo() {
-	std::cout << "---Bplustree information--\n";
-	std::cout << "order: " << btree->getOrder() << "\n";
+	std::cout << MAGENTA << "---Bplustree information--\n" << RESET;
+	std::cout << "order: " << YELLOW << btree->getOrder() << RESET << "\n";
 }
 
 void Program::printParallelBplustreeInfo() {
-	std::cout << "---ParallelBplustree information--\n";
-	std::cout << "order: " << pbtree->getOrder() << "\n";
-	std::cout << "trees: " << pbtree->getNumTrees() << "\n";
-	std::cout << "threads: " << pbtree->getNumThreads() << "\n";
-	std::cout << "bloom: " << pbtree->areBloomFiltersUsed() << "\n";
+	std::cout << MAGENTA << "---ParallelBplustree information--\n" << RESET;
+	std::cout << "order:   " << YELLOW << pbtree->getOrder() << RESET << "\n";
+	std::cout << "trees:   " << YELLOW << pbtree->getNumTrees() << RESET << "\n";
+	std::cout << "threads: " << YELLOW << pbtree->getNumThreads() << RESET << "\n";
+	std::cout << "bloom:   " << YELLOW << pbtree->areBloomFiltersUsed() << RESET << "\n";
 }
 
 void Program::insertTest() {
-	std::cout << "---Insert performance test---\n";
+	std::cout << MAGENTA << "---Insert performance test---\n" << RESET;
 	buildRandomTree(true);
 }
 
@@ -91,12 +92,12 @@ void Program::buildRandomTree(const bool runAsOp) {
 	int distrHigh = runAsOp ? opDistrHigh : buildDistrHigh;
 	int distrLow = runAsOp ? opDistrLow : buildDistrLow;
 	std::uniform_int_distribution<> &distr = runAsOp ? opDistr : buildDistr;
-	std::cout << "Tree to be built by " << numInserts << " inserts\n";
-	std::cout << "Key/value pairs uniformly drawn from range [" << distrLow << ", " << distrHigh << "]\n";
-	std::cout << "Building...\n";
+	std::cout << "Tree to be built by " << YELLOW << numInserts << RESET << " inserts\n";
+	std::cout << "Key/value pairs uniformly drawn from range " << YELLOW << "[" << distrLow << ", " << distrHigh << "]" << RESET << "\n";
+	std::cout << CYAN << "Building...\n" << RESET;
 	std::chrono::duration<double, std::ratio<1, 1000000000>>::rep ns = btree ? buildRandomBplustree(numInserts, distr) : buildRandomParallelBplustree(numInserts, distr);
-	std::cout << "Build finished in: " << ns / 1000000 << " ms\n";
-	std::cout << "Build performance: " << numInserts / (ns / 1000000000) << " ops\n";
+	std::cout << "Build finished in: " << GREEN << ns / 1000000 << " ms\n" << RESET;
+	std::cout << "Build performance: " << GREEN << numInserts / (ns / 1000000000) << " ops\n" << RESET;
 	if (show) {
 		if (numInserts <= 1000) {
 			std::cout << "---Tree print---\n";
@@ -144,8 +145,8 @@ std::chrono::duration<double, std::ratio<1, 1000000000>>::rep Program::buildRand
 	}
 	pbtree->waitForWorkToFinish();
 	auto t3 = std::chrono::high_resolution_clock::now();
-	std::cout << "Time spent pushing tasks to thread pool: " <<  (t2 - t1).count() / 1000000 << " ms\n";
-	std::cout << "Time spent waiting for work to finish: " <<  (t3 - t2).count() / 1000000 << " ms\n";
+	std::cout << "Time spent pushing tasks to thread pool: " << GREEN <<  (t2 - t1).count() / 1000000 << " ms\n" << RESET;
+	std::cout << "Time spent waiting for work to finish: " << GREEN << (t3 - t2).count() / 1000000 << " ms\n" << RESET;
 	return (t3 - t1).count();
 };
 
