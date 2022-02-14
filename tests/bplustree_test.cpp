@@ -1,7 +1,17 @@
 #include <gtest/gtest.h>
 #include "bplustree.hpp"
 
-TEST(BplustreeTest, InsertUniqueKeysTest) {
+class BplustreeTest : public ::testing::Test {
+	protected:
+		Bplustree tree;
+		BplustreeTest() : tree(5) {
+			for (int i = 0; i < 1000; i++) {
+				tree.insert(i, i+1);
+			}
+		};
+};
+
+TEST(BplustreeInsertTest, InsertUniqueKeysTest) {
 	Bplustree tree(5);
 	for (int i = 0; i < 1000; i++) {
 		tree.insert(i, i + 1);
@@ -9,7 +19,7 @@ TEST(BplustreeTest, InsertUniqueKeysTest) {
 	}
 }
 
-TEST(BplustreeTest, InsertDuplicateKeysTest) {
+TEST(BplustreeInsertTest, InsertDuplicateKeysTest) {
 	Bplustree tree(5);
 	for (int i = 0; i < 500; i++) {
 		tree.insert(i, i + 1);
@@ -20,11 +30,7 @@ TEST(BplustreeTest, InsertDuplicateKeysTest) {
 	}
 }
 
-TEST(BplustreeTest, SearchForKeysInTreeTest) {
-	Bplustree tree(5);
-	for (int i = 0; i < 500; i++) {
-		tree.insert(i, i + 1);
-	}
+TEST_F(BplustreeTest, SearchForKeysInTreeTest) {
 	const std::vector<int> *res;
 	for (int i = 0; i < 30; i += 10) {
 		res = tree.search(i);
@@ -39,11 +45,7 @@ TEST(BplustreeTest, SearchForKeysInTreeTest) {
 	EXPECT_EQ((*res)[1], 302);
 }
 
-TEST(BplustreeTest, SearchForKeyNotInTreeTest) {
-	Bplustree tree(5);
-	for (int i = 0; i < 500; i++) {
-		tree.insert(i, i + 1);
-	}
-	const std::vector<int> *res = tree.search(501);
+TEST_F(BplustreeTest, SearchForKeyNotInTreeTest) {
+	const std::vector<int> *res = tree.search(1001);
 	EXPECT_FALSE(res);
 }
