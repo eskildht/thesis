@@ -93,7 +93,7 @@ void Program::buildRandomTree(const bool runAsOp) {
 	int distrLow = runAsOp ? opDistrLow : buildDistrLow;
 	std::uniform_int_distribution<> &distr = runAsOp ? opDistr : buildDistr;
 	std::cout << "Tree to be built by " << YELLOW << numInserts << RESET << " inserts\n";
-	std::cout << "Key/value pairs uniformly drawn from range " << YELLOW << "[" << distrLow << ", " << distrHigh << "]" << RESET << "\n";
+	std::cout << "Key/value pairs uniformly drawn from range " << YELLOW << "[" << distrLow << ", " << distrHigh << "]\n" << RESET;
 	std::cout << CYAN << "Building...\n" << RESET;
 	std::chrono::duration<double, std::ratio<1, 1000000000>>::rep ns = btree ? buildRandomBplustree(numInserts, distr) : buildRandomParallelBplustree(numInserts, distr);
 	std::cout << "Build finished in: " << GREEN << ns / 1000000 << " ms\n" << RESET;
@@ -145,7 +145,7 @@ std::chrono::duration<double, std::ratio<1, 1000000000>>::rep Program::buildRand
 	}
 	pbtree->waitForWorkToFinish();
 	auto t3 = std::chrono::high_resolution_clock::now();
-	std::cout << "Time spent pushing tasks to thread pool: " << GREEN <<  (t2 - t1).count() / 1000000 << " ms\n" << RESET;
+	std::cout << "Time spent pushing tasks to thread pool: " << GREEN << (t2 - t1).count() / 1000000 << " ms\n" << RESET;
 	std::cout << "Time spent waiting for work to finish: " << GREEN << (t3 - t2).count() / 1000000 << " ms\n" << RESET;
 	return (t3 - t1).count();
 };
@@ -153,28 +153,28 @@ std::chrono::duration<double, std::ratio<1, 1000000000>>::rep Program::buildRand
 void Program::searchTest() {
 	std::cout << "---Search performance test---\n";
 	buildRandomTree();
-	std::cout << "Search operations to perform: " << op << "\n";
-	std::cout << "Keys to search for uniformly drawn from range [" << opDistrLow << ", " << opDistrHigh << "]\n";
+	std::cout << "Search operations to perform: " << YELLOW << op << RESET << "\n";
+	std::cout << "Keys to search for uniformly drawn from range " << YELLOW << "[" << opDistrLow << ", " << opDistrHigh << "]\n" << RESET;
 	std::tuple<std::chrono::duration<double, std::ratio<1, 1000000000>>::rep, int, int> result = btree ? searchBplustree() : searchParallelBplustree();
 	std::chrono::duration<double, std::ratio<1, 1000000000>>::rep ns = std::get<0>(result);
 	int hits = std::get<1>(result);
 	int misses = std::get<2>(result);
-	std::cout << "Search finished in: " << ns / 1000000 << " ms\n";
-	std::cout << "Search key hits: " << hits << "\n";
-	std::cout << "Search key misses: " << misses << "\n";
-	std::cout << "Search performance: " << op / (ns / 1000000000) << " ops\n";
+	std::cout << "Search finished in: " << GREEN << ns / 1000000 << " ms\n" << RESET;
+	std::cout << "Search key hits: " << GREEN << hits << "\n" << RESET;
+	std::cout << "Search key misses: " << GREEN << misses << "\n" << RESET;
+	std::cout << "Search performance: " << GREEN << op / (ns / 1000000000) << " ops\n" << RESET;
 }
 
 std::tuple<std::chrono::duration<double, std::ratio<1, 1000000000>>::rep, int, int> Program::searchBplustree() {
 	std::vector<const std::vector<int> *> searchResult;
-	std::cout << "Calling search...\n";
+	std::cout << CYAN << "Calling search...\n" << RESET;
 	auto t1 = std::chrono::high_resolution_clock::now();
 	for (int i = 0; i < op; i++) {
 		int k = opDistr(gen);
 		searchResult.push_back(std::move(btree->search(k)));
 	}
 	auto t2 = std::chrono::high_resolution_clock::now();
-	std::cout << "Calculating statistics...\n";
+	std::cout << CYAN << "Calculating statistics...\n" << RESET;
 	int hits = 0;
 	for (int i = 0; i < op; i++) {
 		if (searchResult[i]) {
@@ -190,19 +190,19 @@ std::tuple<std::chrono::duration<double, std::ratio<1, 1000000000>>::rep, int, i
 	auto t3 = std::chrono::high_resolution_clock::now();
 	int hits = 0;
 	if (batch) {
-		std::cout << "Generating keys for batch search...\n";
+		std::cout << CYAN << "Generating keys for batch search...\n" << RESET;
 		std::vector<int> keys;
 		keys.reserve(op);
 		for (int i = 0; i < op; i++) {
 			keys.push_back(opDistr(gen));
 		}
-		std::cout << "Calling search...\n";
+		std::cout << CYAN << "Calling search...\n" << RESET;
 		t1 = std::chrono::high_resolution_clock::now();
 		std::vector<std::vector<const std::vector<int> *>> result = pbtree->search(keys);
 		t2 = std::chrono::high_resolution_clock::now();
 		pbtree->waitForWorkToFinish();
 		t3 = std::chrono::high_resolution_clock::now();
-		std::cout << "Calculating statistics...\n";
+		std::cout << CYAN << "Calculating statistics...\n" << RESET;
 		for (int i = 0; i < result.size(); i++) {
 			for (int j = 0; j < result[i].size(); j++) {
 				if (result[i][j]) {
@@ -217,7 +217,7 @@ std::tuple<std::chrono::duration<double, std::ratio<1, 1000000000>>::rep, int, i
 		searchFutures.reserve(op);
 		std::vector<std::vector<std::future<const std::vector<int> *>>> searchResult;
 		searchResult.reserve(op);
-		std::cout << "Calling search...\n";
+		std::cout << CYAN << "Calling search...\n" << RESET;
 		t1 = std::chrono::high_resolution_clock::now();
 		for (int i = 0; i < op; i++) {
 			int k = opDistr(gen);
@@ -232,7 +232,7 @@ std::tuple<std::chrono::duration<double, std::ratio<1, 1000000000>>::rep, int, i
 			searchResult.push_back(std::move(temporaryResult));
 		}
 		t3 = std::chrono::high_resolution_clock::now();
-		std::cout << "Calculating statistics...\n";
+		std::cout << CYAN << "Calculating statistics...\n" << RESET;
 		for (int i = 0; i < op; i++) {
 			for (int j = 0; j < searchResult[i].size(); j++) {
 				if (searchResult[i][j].get()) {
@@ -242,29 +242,29 @@ std::tuple<std::chrono::duration<double, std::ratio<1, 1000000000>>::rep, int, i
 			}
 		}
 	}
-	std::cout << "Time spent pushing tasks to thread pool: " <<	(t2 - t1).count() / 1000000 << " ms\n";
-	std::cout << "Time spent waiting for work to finish: " <<	(t3 - t2).count() / 1000000 << " ms\n";
+	std::cout << "Time spent pushing tasks to thread pool: " << GREEN << (t2 - t1).count() / 1000000 << " ms\n" << RESET;
+	std::cout << "Time spent waiting for work to finish: " << GREEN << (t3 - t2).count() / 1000000 << " ms\n" << RESET;
 	return std::make_tuple((t3 - t1).count(), hits, op - hits);
 };
 
 void Program::deleteTest() {
-	std::cout << "---Delete performance test---\n";
+	std::cout << MAGENTA << "---Delete performance test---\n" << RESET;
 	buildRandomTree();
-	std::cout << "Delete operations to perform: " << op << "\n";
-	std::cout << "Keys to search for uniformly drawn from range [" << opDistrLow << ", " << opDistrHigh << "]\n";
+	std::cout << "Delete operations to perform: " << YELLOW << op << "\n" << RESET;
+	std::cout << "Keys to search for uniformly drawn from range " << YELLOW << "[" << opDistrLow << ", " << opDistrHigh << "]\n" << RESET;
 	std::tuple<std::chrono::duration<double, std::ratio<1, 1000000000>>::rep, int, int> result = btree ? deleteBplustree() : deleteParallelBplustree();
 	std::chrono::duration<double, std::ratio<1, 1000000000>>::rep ns = std::get<0>(result);
 	int oldNumKeys = std::get<1>(result);
 	int newNumKeys = std::get<2>(result);
-	std::cout << "Delete finished in: " << ns / 1000000 << " ms\n";
-	std::cout << "Tree size before delete: " << oldNumKeys << "\n";
-	std::cout << "Tree size after delete: " << newNumKeys << "\n";
-	std::cout << "Delete performance: " << op / (ns / 1000000000) << " ops\n";
+	std::cout << "Delete finished in: " << GREEN << ns / 1000000 << " ms\n" << RESET;
+	std::cout << "Tree size before delete: " << RED << oldNumKeys << "\n" << RESET;
+	std::cout << "Tree size after delete: " << GREEN << newNumKeys << "\n" << RESET;
+	std::cout << "Delete performance: " << GREEN << op / (ns / 1000000000) << " ops\n" << RESET;
 }
 
 std::tuple<std::chrono::duration<double, std::ratio<1, 1000000000>>::rep, int, int> Program::deleteBplustree() {
 	int oldNumKeys = btree->getNumKeysStored();
-	std::cout << "Calling remove...\n";
+	std::cout << CYAN << "Calling remove...\n" << RESET;
 	auto t1 = std::chrono::high_resolution_clock::now();
 	for (int i = 0; i < op; i++) {
 		btree->remove(opDistr(gen));
@@ -285,13 +285,13 @@ std::tuple<std::chrono::duration<double, std::ratio<1, 1000000000>>::rep, int, i
 		oldNumKeys += num;
 	}
 	if (batch) {
-		std::cout << "Generating keys for batch delete...\n";
+		std::cout << CYAN << "Generating keys for batch delete...\n" << RESET;
 		std::vector<int> keys;
 		keys.reserve(op);
 		for (int i = 0; i < op; i++) {
 			keys.push_back(opDistr(gen));
 		}
-		std::cout << "Calling remove...\n";
+		std::cout << CYAN << "Calling remove...\n" << RESET;
 		t1 = std::chrono::high_resolution_clock::now();
 		pbtree->remove(keys);
 		t2 = std::chrono::high_resolution_clock::now();
@@ -299,7 +299,7 @@ std::tuple<std::chrono::duration<double, std::ratio<1, 1000000000>>::rep, int, i
 		t3 = std::chrono::high_resolution_clock::now();
 	}
 	else {
-		std::cout << "Calling remove...\n";
+		std::cout << CYAN << "Calling remove...\n" << RESET;
 		t1 = std::chrono::high_resolution_clock::now();
 		for (int i = 0; i < op; i++) {
 			deleteFutures.push_back(pbtree->remove(opDistr(gen)));
@@ -317,31 +317,31 @@ std::tuple<std::chrono::duration<double, std::ratio<1, 1000000000>>::rep, int, i
 	for (int num : pbtree->getTreeNumKeys()) {
 		newNumKeys += num;
 	}
-	std::cout << "Time spent pushing tasks to thread pool: " <<  (t2 - t1).count() / 1000000 << " ms\n";
-	std::cout << "Time spent waiting for work to finish: " <<  (t3 - t2).count() / 1000000 << " ms\n";
+	std::cout << "Time spent pushing tasks to thread pool: " << GREEN <<  (t2 - t1).count() / 1000000 << " ms\n" << RESET;
+	std::cout << "Time spent waiting for work to finish: " << GREEN <<  (t3 - t2).count() / 1000000 << " ms\n" << RESET;
 	return std::make_tuple((t3 - t1).count(), oldNumKeys, newNumKeys);
 }
 
 void Program::updateTest() {
-	std::cout << "---Update performance test---\n";
+	std::cout << MAGENTA << "---Update performance test---\n" << RESET;
 	buildRandomTree();
-	std::cout << "Update operations to perform: " << op << "\n";
-	std::cout << "Keys to update uniformly drawn from range [" << opDistrLow << ", " << opDistrHigh << "]\n";
-	std::cout << "Updates performed with single values only\n";
-	std::cout << "insertIfNotFound = true for all updates\n";
+	std::cout << "Update operations to perform: " << YELLOW << op << "\n" << RESET;
+	std::cout << "Keys to update uniformly drawn from range " << YELLOW << "["<< opDistrLow << ", " << opDistrHigh << "]\n" << RESET;
+	std::cout << "Updates performed with" << YELLOW << " single values only\n" << RESET;
+	std::cout << YELLOW << "insertIfNotFound = true" << RESET << " for all updates\n";
 	std::tuple<std::chrono::duration<double, std::ratio<1, 1000000000>>::rep, int, int> result = btree ? updateBplustree() : updateParallelBplustree();
 	std::chrono::duration<double, std::ratio<1, 1000000000>>::rep ns = std::get<0>(result);
 	int oldNumKeys = std::get<1>(result);
 	int newNumKeys = std::get<2>(result);
-	std::cout << "Update finished in: " << ns / 1000000 << " ms\n";
-	std::cout << "Tree size before update: " << oldNumKeys << "\n";
-	std::cout << "Tree size after update: " << newNumKeys << "\n";
-	std::cout << "Update performance: " << op / (ns / 1000000000) << " ops\n";
+	std::cout << "Update finished in: " << GREEN << ns / 1000000 << " ms\n" << RESET;
+	std::cout << "Tree size before update: " << RED << oldNumKeys << "\n" << RESET;
+	std::cout << "Tree size after update: " << GREEN << newNumKeys << "\n" << RESET;
+	std::cout << "Update performance: " << GREEN << op / (ns / 1000000000) << " ops\n" << RESET;
 }
 
 std::tuple<std::chrono::duration<double, std::ratio<1, 1000000000>>::rep, int, int> Program::updateBplustree() {
 	int oldNumKeys = btree->getNumKeysStored();
-	std::cout << "Calling update...\n";
+	std::cout << CYAN << "Calling update...\n" << RESET;
 	auto t1 = std::chrono::high_resolution_clock::now();
 	for (int i = 0; i < op; i++) {
 		int k = opDistr(gen);
@@ -354,7 +354,7 @@ std::tuple<std::chrono::duration<double, std::ratio<1, 1000000000>>::rep, int, i
 }
 
 std::tuple<std::chrono::duration<double, std::ratio<1, 1000000000>>::rep, int, int> Program::updateParallelBplustree() {
-	std::cout << "Generating keys and values...\n";
+	std::cout << CYAN << "Generating keys and values...\n" << RESET;
 	std::vector<int> keys;
 	keys.reserve(op);
 	std::vector<std::vector<int>> values;
@@ -370,7 +370,7 @@ std::tuple<std::chrono::duration<double, std::ratio<1, 1000000000>>::rep, int, i
 	auto t1 = std::chrono::high_resolution_clock::now();
 	auto t2 = std::chrono::high_resolution_clock::now();
 	auto t3 = std::chrono::high_resolution_clock::now();
-	std::cout << "Calling update...\n";
+	std::cout << CYAN << "Calling update...\n" << RESET;
 	if (batch) {
 		t1 = std::chrono::high_resolution_clock::now();
 		pbtree->update(keys, values);
@@ -389,7 +389,7 @@ std::tuple<std::chrono::duration<double, std::ratio<1, 1000000000>>::rep, int, i
 	for (int num : pbtree->getTreeNumKeys()) {
 		newNumKeys += num;
 	}
-	std::cout << "Time spent pushing tasks to thread pool: " <<  (t2 - t1).count() / 1000000 << " ms\n";
-	std::cout << "Time spent waiting for work to finish: " <<  (t3 - t2).count() / 1000000 << " ms\n";
+	std::cout << "Time spent pushing tasks to thread pool: " << GREEN <<  (t2 - t1).count() / 1000000 << " ms\n" << RESET;
+	std::cout << "Time spent waiting for work to finish: " << GREEN <<  (t3 - t2).count() / 1000000 << " ms\n" << RESET;
 	return std::make_tuple((t3 - t1).count(), oldNumKeys, newNumKeys);
 }
