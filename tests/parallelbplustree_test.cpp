@@ -49,3 +49,22 @@ TEST_F(ParallelBplustreeBloomEnabledTest, SearchForKeyNotInTreeTest) {
 		EXPECT_FALSE(resPart);
 	}
 }
+
+TEST_F(ParallelBplustreeBloomEnabledTest, SearchBatchTest) {
+	std::vector<int> keys = {10, 23, 192, 1, 19, 391, 10000};
+	std::vector<std::vector<const std::vector<int> *>> result = tree.search(keys);
+	tree.waitForWorkToFinish();
+	std::vector<std::vector<const std::vector<int> *>> processedResult(result.size());
+	for (int i = 0; i < result.size(); i++) {
+		for (int j = 0; j < result[i].size(); j++) {
+			if (result[i][j]) {
+				processedResult[i].push_back(result[i][j]);
+			}
+		}
+	}
+	for (int i = 0; i < keys.size() - 1; i++) {
+		EXPECT_EQ(processedResult[i].size(), 1);
+		EXPECT_EQ(keys[i] + 1, (*(processedResult[i][0]))[0]);
+	}
+	EXPECT_EQ(processedResult[keys.size() - 1].size(), 0);
+}
