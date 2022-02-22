@@ -103,7 +103,7 @@ void ParallelBplustree::insert(std::vector<int> &keys, std::vector<int> &values)
 			threadPool.push_task([
 					=,
 					this
-			] { 
+			] {
 			threadInsert(
 				keysIt + i*splitSize,
 				keysIt + (i+1)*splitSize,
@@ -188,29 +188,30 @@ std::future<std::vector<std::future<const std::vector<int> *>>> ParallelBplustre
 }
 
 void ParallelBplustree::threadSearch(const std::vector<int> *batchKeys, const int treeIndex, std::vector<std::vector<const std::vector<int> *>> &result, const std::vector<int> keysPos) {
-	if (keysPos.size() > 0) {
-		std::shared_lock<std::shared_mutex> treeReadLock(*treeLocks[treeIndex]);
-		for (int i = 0; i < keysPos.size(); i++) {
-			result[keysPos[i]].push_back(trees[treeIndex]->search((*batchKeys)[keysPos[i]]));
+	if (useBloomFilters) {
+		if (keysPos.size() > 0) {
+			std::shared_lock<std::shared_mutex> treeReadLock(*treeLocks[treeIndex]);
+			for (int i = 0; i < keysPos.size(); i++) {
+				result[keysPos[i]][treeIndex] = trees[treeIndex]->search((*batchKeys)[keysPos[i]]);
+			}
 		}
 	}
 	else {
 		std::shared_lock<std::shared_mutex> treeReadLock(*treeLocks[treeIndex]);
 		for (int i = 0; i < batchKeys->size(); i++) {
-			result[i].push_back(trees[treeIndex]->search((*batchKeys)[i]));
+			result[i][treeIndex] = trees[treeIndex]->search((*batchKeys)[i]);
 		}
 	}
 }
 
 std::vector<std::vector<const std::vector<int> *>> ParallelBplustree::search(const std::vector<int> &keys) {
-	std::vector<std::vector<const std::vector<int> *>> result(keys.size());
+	std::vector<std::vector<const std::vector<int> *>> result(keys.size(), std::vector<const std::vector<int> *>(numTrees, nullptr));
 	if (useBloomFilters) {
 		std::vector<std::vector<int>> keysPos(numTrees);
-		for (int i = 0; i < numTrees; i++) {
+		for (int i = numTrees - 1; i > -1; i--) {
 			keysPos[i].reserve(keys.size() / numTrees);
 		}
 		for (int i = 0; i < keys.size(); i++) {
-			result[i].reserve(numTrees);
 			for (int j = 0; j < numTrees; j++) {
 				std::shared_lock<std::shared_mutex> treeFilterReadLock(*treeFilterLocks[j]);
 				if (treeFilters[j]->contains(keys[i])) {
@@ -224,9 +225,6 @@ std::vector<std::vector<const std::vector<int> *>> ParallelBplustree::search(con
 		}
 	}
 	else {
-		for (int i = 0; i < keys.size(); i++) {
-			result[i].reserve(numTrees);
-		}
 		for (int i = 0; i < numTrees; i++) {
 			threadPool.push_task([=, &result, this] { threadSearch(&keys, i, result, {}); });
 		}
