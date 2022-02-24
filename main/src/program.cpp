@@ -151,7 +151,7 @@ std::chrono::duration<double, std::ratio<1, 1000000000>>::rep Program::buildRand
 };
 
 void Program::searchTest() {
-	std::cout << "---Search performance test---\n";
+	std::cout << MAGENTA << "---Search performance test---\n" << RESET;
 	buildRandomTree();
 	std::cout << "Search operations to perform: " << YELLOW << op << RESET << "\n";
 	std::cout << "Keys to search for uniformly drawn from range " << YELLOW << "[" << opDistrLow << ", " << opDistrHigh << "]\n" << RESET;
