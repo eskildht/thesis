@@ -7,7 +7,7 @@ void printHelpInfo() {
 	std::cout << "\t./optimized [FLAGS] [OPTIONS] --test <test>\n";
 	std::cout << "\n";
 	std::cout << "FLAGS:\n";
-	std::cout << "\t--batch                     " << "Enable batch insert during --test insert and general build, if --tree option has value parallel\n";
+	std::cout << "\t--batch                     " << "Enable batching during test and general build, if --tree option has value parallel\n";
 	std::cout << "\t--bloom-disable             " << "Disable bloom filter usage if --tree option has value parallel\n";
 	std::cout << "\t--help                      " << "Print this help information\n";
 	std::cout << "\t--show                      " << "Print the tree after build if --tree-size value <= 1000\n";
